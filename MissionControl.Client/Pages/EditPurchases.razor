@@ -136,54 +136,57 @@ else
                     <td>@item.SubTotalExclTaxValue</td>
                     <td>
                         <MatButton Raised="true" OnClick="@(e => { dialogIsDelete = true; })" Label="Delete" Class="margin: 10px 0px 0px 0px;"></MatButton>
-                        <MatButton Raised="true" OnClick="@(e => { dialogIsUpdate = true; })" Label="Update" Class="margin: 10px 0px 0px 0px;"></MatButton>
+                        <MatButton Raised="true" OnClick="@(e => beforeUpdateItem(item))" Label="Update" Class="margin: 10px 0px 0px 0px;"></MatButton>
                     </td>
-                </tr>
-                <MatDialog @bind-IsOpen="@dialogIsDelete">
-                    <MatDialogTitle>Confirmation</MatDialogTitle>
-                    <MatDialogContent>
-                        <p>Do you wich to delete this record?</p>
-                    </MatDialogContent>
-                    <MatDialogActions>
-                        <MatButton OnClick="() => DeleteItem(item.Id)">OK</MatButton>
-                        <MatButton OnClick="@(e => { dialogIsDelete = false; })">Cancel</MatButton>
-                    </MatDialogActions>
-                </MatDialog>
 
-                <MatDialog @bind-IsOpen="@dialogIsUpdate">
-                    <MatDialogTitle>Update Item</MatDialogTitle>
-                    <MatDialogContent>
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <label class="control-label">Product:</label>
-                                <label class="form-control">@item.ProductName</label>
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="control-label">Weight (kg):</label>
-                                <MatTextField @bind-Value="item.WeightKg" Class="form-control text-box"></MatTextField>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <label class="control-label">Price (THB):</label>
-                                <MatTextField @bind-Value="item.UnitPriceExclTax" Class="form-control text-box"></MatTextField>
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="control-label">No of crates:</label>
-                                <MatTextField @bind-Value="item.PurchaseCrates" Class="form-control text-box "></MatTextField>
-                            </div>
-                        </div>
-                    </MatDialogContent>
-                    <MatDialogActions>
-                        <MatButton OnClick="@UpdateItem">Save</MatButton>
-                        <MatButton OnClick="@(e => { dialogIsUpdate = false; })">Cancel</MatButton>
-                    </MatDialogActions>
-                </MatDialog>
+                </tr>
+
             }
         </tbody>
     </table>
 
 }
+
+<MatDialog @bind-IsOpen="@dialogIsDelete">
+    <MatDialogTitle>Confirmation</MatDialogTitle>
+    <MatDialogContent>
+        <p>Do you wich to delete this record?</p>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="() => DeleteItem(item.Id)">OK</MatButton>
+        <MatButton OnClick="@(e => beforeDeleteItem(item.Id))">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+<MatDialog @bind-IsOpen="@dialogIsUpdate">
+    <MatDialogTitle>Update Item</MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-sm-6">
+                <label class="control-label">Product:</label>
+                <label class="form-control">@itemUpdate.ProductName</label>
+            </div>
+            <div class="col-sm-6">
+                <label class="control-label">Weight (kg):</label>
+                <MatTextField @bind-Value="itemUpdate.WeightKg" Class="form-control text-box"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <label class="control-label">Price (THB):</label>
+                <MatTextField @bind-Value="itemUpdate.UnitPriceExclTax" Class="form-control text-box"></MatTextField>
+            </div>
+            <div class="col-sm-6">
+                <label class="control-label">No of crates:</label>
+                <MatTextField @bind-Value="itemUpdate.PurchaseCrates" Class="form-control text-box "></MatTextField>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="()=> UpdateItem(itemUpdate)">Save</MatButton>
+        <MatButton OnClick="@(e => { dialogIsUpdate = false; })">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
 
 <MatDialog @bind-IsOpen="@dialogIsAdd">
     <MatDialogTitle>Add Item</MatDialogTitle>
@@ -218,11 +221,13 @@ else
 @code {
     [Parameter]
     public int id { get; set; }
+    public int itemDeleteId { get; set; }
     bool dialogIsDelete = false;
     bool dialogIsUpdate = false;
     bool dialogIsAdd = false;
     public DateTime purchaseDate;
     public PurchaseItemModel item = new PurchaseItemModel();
+    public PurchaseItemModel itemUpdate = new PurchaseItemModel();
 
     protected override async Task OnInitializedAsync()
     {
@@ -244,11 +249,47 @@ else
 
     async Task AddItem()
     {
-
+        var token = await TokenProvider.GetTokenAsync();
+        var detailRequest = new PurchaseItemUpdateRequest
+        {
+            PurchaseId = item.PurchaseId,
+            // ProductId = item.ProductId,
+            ProductName = item.ProductName,
+            PurchaseCrates = item.PurchaseCrates,
+            UnitPriceExclTax = item.UnitPriceExclTax,
+            WeightKg = item.WeightKg
+        };
+        await PurchaseState.AddPurchaseItemAsync(detailRequest, token);
+        dialogIsUpdate = false;
     }
-    async Task UpdateItem()
-    {
 
+    void beforeUpdateItem(PurchaseItemModel item)
+    {
+        itemUpdate = item;
+        dialogIsUpdate = true;
+    }
+
+    void beforeDeleteItem(int Id)
+    {
+        itemDeleteId = Id;
+        dialogIsDelete = true;
+    }
+
+    async Task UpdateItem(PurchaseItemModel item)
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        var detailRequest = new PurchaseItemUpdateRequest
+        {
+            Id = item.Id,
+            PurchaseId = item.PurchaseId,
+            //ProductId = item.ProductId,
+            ProductName = item.ProductName,
+            PurchaseCrates = item.PurchaseCrates,
+            UnitPriceExclTax = item.UnitPriceExclTax,
+            WeightKg = item.WeightKg
+        };
+        await PurchaseState.UpdatePurchaseItemAsync(detailRequest, token);
+        dialogIsUpdate = false;
     }
     void Back()
     {

@@ -31,7 +31,7 @@ namespace MissionControl.Shared.Models
         public string UnitPriceExclTaxValue { get; set; } = "";
         public decimal WeightKg { get; set; } = 0;
         #endregion
-
+        public int PurchaseId { get; set; }
 
         /// <summary>
         /// Gets or sets the Reception identifier

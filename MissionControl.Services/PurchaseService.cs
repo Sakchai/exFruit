@@ -99,5 +99,23 @@ namespace MissionControl.Services
             _purchaseItemRepository.Delete(item);
 
         }
+
+        public void UpdatePurchaseItem(PurchaseItem item)
+        {
+            _purchaseItemRepository.Update(item);
+        }
+
+        public void InsertPurchaseItem(PurchaseItem item)
+        {
+            _purchaseItemRepository.Insert(item);
+        }
+
+        public PurchaseItem GetPurchaseItemById(int id)
+        {
+            if (id == 0)
+                return null;
+
+            return _purchaseItemRepository.GetById(id);
+        }
     }
 }

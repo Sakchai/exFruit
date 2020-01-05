@@ -7,6 +7,7 @@ using iTextSharp.text.pdf;
 
 using System.Threading.Tasks;
 using MissionControl.Shared;
+using MissionControl.Shared.Models.Common;
 
 namespace MissionControl.Services.Common
 {
@@ -152,8 +153,7 @@ namespace MissionControl.Services.Common
                 iTextSharp.text.pdf.PdfContentByte cb = pdfWriter.DirectContent;
                 iTextSharp.text.pdf.Barcode128 bc = new Barcode128();
                 bc.TextAlignment = Element.ALIGN_LEFT;
-                string code = string.Format("{0,10:D13}", purchaseItem.Id);
-                bc.Code = appendChecksum(code); 
+                bc.Code = purchaseItem.EAN; // CommonUtils.GenerateBarCodeEAN13(purchaseItem.Id); 
                 bc.StartStopText = false;
                 bc.CodeType = iTextSharp.text.pdf.Barcode128.EAN13;
                 bc.Extended = true;
@@ -200,11 +200,10 @@ namespace MissionControl.Services.Common
                 var pAttribTable = new PdfPTable(1) { RunDirection = GetDirection() };
                 pAttribTable.DefaultCell.Border = Rectangle.NO_BORDER;
                 PdfContentByte cb = pdfWriter.DirectContent;
-                string code = string.Format("{0,10:D13}", purchaseItem.Id);
-                code = appendChecksum(code);
+                //string code = purchaseItem.EAN;  //CommonUtils.GenerateBarCodeEAN13(purchaseItem.Id);
                 var bc = new BarcodeEan
                 {
-                    Code = code,
+                    Code = purchaseItem.EAN,
                     TextAlignment = Element.ALIGN_CENTER,
                     StartStopText = true,
                     CodeType = Barcode.EAN13,
@@ -222,20 +221,7 @@ namespace MissionControl.Services.Common
             doc.Add(productsTable);
         }
 
-        private string appendChecksum(string code)
-        {
-            var sum = 0;
 
-            for (var i = code.Length; i >= 1; i--)
-            {
-                var d = Convert.ToInt32(code.Substring(i - 1, 1));
-                var f = i % 2 == 0 ? 3 : 1;
-                sum += d * f;
-            }
-            var checksum = (10 - (sum % 10)) % 10;
-
-            return code + checksum;
-        }
 
         protected virtual int GetDirection()
         {

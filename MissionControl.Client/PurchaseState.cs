@@ -49,10 +49,44 @@ namespace MissionControl.Client
             }
         }
 
+        public async Task UpdatePurchaseItemAsync(PurchaseItemUpdateRequest updateRequest, string token)
+        {
+            var apiRequest = $"{BackendUrl}/updatePurchaseItem";
+            Console.WriteLine(apiRequest);
+            await PostPurchaseItem(updateRequest, token, apiRequest);
+        }
+
+        public async Task AddPurchaseItemAsync(PurchaseItemUpdateRequest updateRequest, string token)
+        {
+            var apiRequest = $"{BackendUrl}/addPurchaseItem";
+            Console.WriteLine(apiRequest);
+            await PostPurchaseItem(updateRequest, token, apiRequest);
+        }
+
+        private async Task PostPurchaseItem(PurchaseItemUpdateRequest updateRequest, string token, string apiRequest)
+        {
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var strPayload = JsonConvert.SerializeObject(updateRequest);
+                Console.WriteLine($"strPayload={strPayload}");
+                var items = await _httpClient.PostJsonAsync<PurchaseItemModel[]>(apiRequest, strPayload,
+                                new AuthenticationHeaderValue("Bearer", token));
+                Details = new List<PurchaseItemModel>();
+                foreach (var item in items)
+                    Details.Add(item);
+            }
+        }
+
         public async Task DeletePurchaseItemAsync(int id, string token)
         {
             var apiRequest = $"{BackendUrl}/deletePurchaseItem/{id}";
 
+            await GetPurchaseItemList(id, token, apiRequest);
+
+        }
+
+        private async Task GetPurchaseItemList(int id, string token, string apiRequest)
+        {
             Details = new List<PurchaseItemModel>();
             if (!string.IsNullOrWhiteSpace(token))
             {
@@ -64,8 +98,8 @@ namespace MissionControl.Client
                     Details.Add(item);
                 }
             }
-
         }
+
         public async Task GetPurchaseAsync(int id, string token)
         {
             var apiRequest = $"{BackendUrl}/purchases/{id}";
@@ -84,25 +118,12 @@ namespace MissionControl.Client
         public async Task GetPurchaseItemsAsync(int id, string token)
         {
             var apiRequest = $"{BackendUrl}/purchaseItems/{id}";
-            Details = new List<PurchaseItemModel>();
-            if (!string.IsNullOrWhiteSpace(token))
-            {
-                Console.WriteLine($"id={id}");
-                var items = await _httpClient.GetJsonAsync<PurchaseItemModel[]>(apiRequest,
-                                new AuthenticationHeaderValue("Bearer", token));
-               // Console.WriteLine($"items={JsonConvert.SerializeObject(items)}");
-                foreach (var item in items)
-                {
-                  //  Console.WriteLine($"item={JsonConvert.SerializeObject(item)}");
-                    Details.Add(item);
-                }
-                Console.WriteLine($"purchaseItems={JsonConvert.SerializeObject(Details)}");
-            }
+            await GetPurchaseItemList(id, token, apiRequest);
         }
 
         public void BarcodeItem(int id, string token)
         {
-            var apiRequest = $"{BackendUrl}/editPurchase";
+            var apiRequest = $"{BackendUrl}/barcodePurchase";
             if (id != 0)
             {
 

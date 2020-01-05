@@ -22,8 +22,10 @@ namespace MissionControl.Services
 
         void DeletePurchase(Purchase purchase);
 
-        void DeletePurchaseItem(int Id);
-
         Purchase GetPurchaseById(int purchaseId);
+        void UpdatePurchaseItem(PurchaseItem purchaseItem);
+        void InsertPurchaseItem(PurchaseItem purchaseItem);
+        void DeletePurchaseItem(int Id);
+        PurchaseItem GetPurchaseItemById(int id);
     }
 }

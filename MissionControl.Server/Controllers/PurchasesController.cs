@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MissionControl.Services;
 using MissionControl.Services.Common;
 using MissionControl.Services.Factories;
+using MissionControl.Shared;
 using MissionControl.Shared.Models;
 using MissionControl.Shared.Models.Common;
 using MissionControl.Shared.Models.Purchase;
@@ -105,6 +106,42 @@ namespace MissionControl.Server.Controllers
             }
             return purchases;
         }
+
+        [Authorize]
+        [HttpPost("/updatePurchaseItem")]
+        public IEnumerable<PurchaseItemModel> UpdatePurchaseItem(PurchaseItemUpdateRequest req)
+        {
+
+            var purchaseItem = _purchaseService.GetPurchaseItemById(req.Id);
+           // purchaseItem.ProductId = req.ProductId;
+            purchaseItem.ProductName = req.ProductName;
+            purchaseItem.PurchaseCrates = req.PurchaseCrates;
+            purchaseItem.UnitPriceExclTax = req.UnitPriceExclTax;
+            purchaseItem.WeightKg = req.WeightKg;
+            _purchaseService.UpdatePurchaseItem(purchaseItem);
+
+            return GetPurchaseItemsByPurchaseId(req.PurchaseId);
+        }
+
+        [Authorize]
+        [HttpPost("/addPurchaseItem")]
+        public IEnumerable<PurchaseItemModel> AddPurchaseItem(PurchaseItemUpdateRequest req)
+        {
+
+            var purchaseItem = new PurchaseItem();
+            purchaseItem.PurchaseId = req.PurchaseId;
+          //  purchaseItem.ProductId = req.ProductId;
+            purchaseItem.ProductName = req.ProductName;
+            purchaseItem.PurchaseCrates = req.PurchaseCrates;
+            purchaseItem.UnitPriceExclTax = req.UnitPriceExclTax;
+            purchaseItem.WeightKg = req.WeightKg;
+
+            _purchaseService.InsertPurchaseItem(purchaseItem);
+            purchaseItem.EAN = CommonUtils.GenerateBarCodeEAN13(purchaseItem.Id);
+            _purchaseService.UpdatePurchaseItem(purchaseItem);
+            return GetPurchaseItemsByPurchaseId(req.PurchaseId);
+        }
+
         [Authorize]
         [HttpGet("{id}")]
         public ActionResult<PurchaseModel> GetPurchase([FromRoute] int id)
@@ -148,7 +185,7 @@ namespace MissionControl.Server.Controllers
             if (id == 0)
                 return new List<PurchaseItemModel>(); 
 
-            return GetPurchaseItemsById(id); 
+            return GetPurchaseItemsByPurchaseId(id); 
         }
 
 
@@ -161,11 +198,11 @@ namespace MissionControl.Server.Controllers
 
             _purchaseService.DeletePurchaseItem(id);
 
-            return GetPurchaseItemsById(id);
+            return GetPurchaseItemsByPurchaseId(id);
 
         }
 
-        private List<PurchaseItemModel> GetPurchaseItemsById(int id)
+        private List<PurchaseItemModel> GetPurchaseItemsByPurchaseId(int id)
         {
             var items = new List<PurchaseItemModel>();
 
@@ -179,12 +216,15 @@ namespace MissionControl.Server.Controllers
                 items.Add(new PurchaseItemModel
                 {
                     Id = item.Id,
+                    PurchaseId = item.PurchaseId,
                     EAN = item.EAN,
                     ProductName = item.ProductName,
                     WeightKg = item.WeightKg,
+                    UnitPriceExclTax = item.UnitPriceExclTax,
                     UnitPriceExclTaxValue = item.UnitPriceExclTax.ToString("N", CultureInfo.InvariantCulture),
                     PurchaseCrates = item.PurchaseCrates,
                     SubTotalExclTaxValue = item.SubTotalExclTax.ToString("N", CultureInfo.InvariantCulture),
+                    SubTotalExclTax = item.SubTotalExclTax
                 });
             }
             return items;
