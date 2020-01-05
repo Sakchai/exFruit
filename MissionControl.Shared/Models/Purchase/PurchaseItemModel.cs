@@ -24,7 +24,7 @@ namespace MissionControl.Shared.Models
         public string VendorName { get; set; } = "";
 
         public decimal SubTotalExclTax { get; set; } = 0;
-        public string SubTotalExclTaxValue { get; set; }
+        public string SubTotalExclTaxValue { get; set; } = "";
         public decimal SubTotalInclTax { get; set; } = 0;
 
         public decimal UnitPriceExclTax { get; set; } = 0;

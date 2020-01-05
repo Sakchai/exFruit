@@ -14,7 +14,7 @@ namespace MissionControl.Services
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
-  
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -115,9 +115,12 @@ namespace MissionControl.Services
 
             modelBuilder.Entity<Purchase>().ToTable(nameof(Purchase));
             modelBuilder.Entity<Purchase>().HasKey(p => p.Id);
+            modelBuilder.Entity<Purchase>().Property(p => p.TotalWeightKg).HasColumnType("decimal(18, 4)");
+            modelBuilder.Entity<Purchase>().Property(p => p.PurchaseTotal).HasColumnType("decimal(18, 2)");
+
             modelBuilder.Entity<Purchase>().HasOne(purchase => purchase.Vendor)
-                          .WithMany()
-                          .HasForeignKey(purchase => purchase.VendorId);
+                              .WithMany()
+                              .HasForeignKey(purchase => purchase.VendorId);
             modelBuilder.Entity<Purchase>().Ignore(purchase => purchase.PurchaseStatus);
             modelBuilder.Entity<Purchase>().Ignore(purchase => purchase.PurchaseProcess);
             // Purchase Item

@@ -40,7 +40,7 @@ namespace MissionControl.Services.Factories
                     Id = item.Id,
                     PurchaseStatusName = item.PurchaseStatus.ToString(),
                     PurchaseProcessName = item.PurchaseProcess.ToString(),
-                    VendorFullName = (item.Vendor == null) ? string.Empty :  item.Vendor.Name,
+                    VendorName = (item.Vendor == null) ? item.VendorName :  item.Vendor.Name,
                     TotalCrates = item.TotalCrates,
                 }); 
             }

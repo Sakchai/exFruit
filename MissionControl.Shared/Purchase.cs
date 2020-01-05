@@ -26,32 +26,13 @@ namespace MissionControl.Shared
         /// <summary>
         /// Gets or sets the store identifier
         /// </summary>
-        public int StoreId { get; set; }
 
         /// <summary>
         /// Gets or sets the customer identifier
         /// </summary>
         public int? VendorId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the billing address identifier
-        /// </summary>
-        public int? BillingAddressId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the shipping address identifier
-        /// </summary>
-        public int? ReceivingAddressId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the pickup address identifier
-        /// </summary>
-        public int? PickupAddressId { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether a customer chose "pick up in store" shipping option
-        /// </summary>
-        public bool PickupInStore { get; set; }
+        public string VendorName { get; set; }
+        public string VendorAddress { get; set; }
 
         /// <summary>
         /// Gets or sets an order status identifier
@@ -82,7 +63,7 @@ namespace MissionControl.Shared
         /// </summary>
         public decimal PurchaseTotal { get; set; }
 
-
+        public decimal TotalWeightKg { get; set; }
         /// <summary>
         /// Gets or sets the shipping method
         /// </summary>
@@ -102,7 +83,7 @@ namespace MissionControl.Shared
         /// <summary>
         /// Gets or sets the custom order number without prefix
         /// </summary>
-        public string CustomPurchaseNumber { get; set; }
+        public string Remark { get; set; }
 
         public int TotalCrates { get; set; }
 
@@ -117,22 +98,7 @@ namespace MissionControl.Shared
         /// </summary>
         public virtual Vendor Vendor { get; set; }
 
-        /// <summary>
-        /// Gets or sets the billing address
-        /// </summary>
-        public virtual Address BillingAddress { get; set; }
-
-        /// <summary>
-        /// Gets or sets the shipping address
-        /// </summary>
-        public virtual Address ReceivingAddress { get; set; }
-
-        /// <summary>
-        /// Gets or sets the pickup address
-        /// </summary>
-        public virtual Address PickupAddress { get; set; }
-
-
+    
 
         /// <summary>
         /// Gets or sets order items

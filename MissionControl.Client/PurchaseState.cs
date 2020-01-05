@@ -30,7 +30,7 @@ namespace MissionControl.Client
 
         public async Task SearchPurchaseAsync(PurchaseSearchRequest purchaseSearchRequest, string token)
         {
-            
+
             var apiRequest = $"{BackendUrl}/searchPurchase";
             Console.WriteLine(apiRequest);
             if (!string.IsNullOrWhiteSpace(token))
@@ -53,17 +53,19 @@ namespace MissionControl.Client
         {
             var apiRequest = $"{BackendUrl}/updatePurchaseItem";
             Console.WriteLine(apiRequest);
-            await PostPurchaseItem(updateRequest, token, apiRequest);
+            await PostPurchaseItemAsync(updateRequest, token, apiRequest);
+            await GetPurchaseAsync(updateRequest.PurchaseId, token);
         }
 
         public async Task AddPurchaseItemAsync(PurchaseItemUpdateRequest updateRequest, string token)
         {
             var apiRequest = $"{BackendUrl}/addPurchaseItem";
             Console.WriteLine(apiRequest);
-            await PostPurchaseItem(updateRequest, token, apiRequest);
+            await PostPurchaseItemAsync(updateRequest, token, apiRequest);
+            await GetPurchaseAsync(updateRequest.PurchaseId, token);
         }
 
-        private async Task PostPurchaseItem(PurchaseItemUpdateRequest updateRequest, string token, string apiRequest)
+        private async Task PostPurchaseItemAsync(PurchaseItemUpdateRequest updateRequest, string token, string apiRequest)
         {
             if (!string.IsNullOrWhiteSpace(token))
             {
@@ -77,11 +79,43 @@ namespace MissionControl.Client
             }
         }
 
+
+        public async Task AddPurchaseAsync(PurchaseModel purchase, string token)
+        {
+            var apiRequest = $"{BackendUrl}/createOrUpdatePurchase";
+            Console.WriteLine(apiRequest);
+            var updateRequest = new PurchaseUpdateRequest
+            {
+                Id = purchase.Id,
+                PurchaseDate = purchase.PurchaseDate,
+                PurchaseNo = purchase.PurchaseNo,
+                PurchaseStatusIdValue = purchase.PurchaseStatusIdValue,
+                PurchaseProcessIdValue = "10", //Purchase Status
+                Remark = purchase.Remark,
+                VendorName = purchase.VendorName,
+                VendorAddress = purchase.VendorAddress,
+                WeightKg = purchase.WeightKg,
+                TotalCrates = purchase.TotalCrates,
+            };
+            await PostPurchaseAsync(updateRequest, token, apiRequest);
+        }
+
+        private async Task PostPurchaseAsync(PurchaseUpdateRequest updateRequest, string token, string apiRequest)
+        {
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var strPayload = JsonConvert.SerializeObject(updateRequest);
+                Console.WriteLine($"strPayload={strPayload}");
+                Header = await _httpClient.PostJsonAsync<PurchaseModel>(apiRequest, strPayload,
+                                new AuthenticationHeaderValue("Bearer", token));
+            }
+        }
         public async Task DeletePurchaseItemAsync(int id, string token)
         {
             var apiRequest = $"{BackendUrl}/deletePurchaseItem/{id}";
 
             await GetPurchaseItemList(id, token, apiRequest);
+            await GetPurchaseAsync(Details.FirstOrDefault().PurchaseId, token);
 
         }
 

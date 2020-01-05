@@ -17,7 +17,7 @@
         <h1 class="@MdcTypography.H4">Purchase List</h1>
     </div>
     <div class="col-sm-3" >
-        <MatButton Raised="true" OnClick="Refresh" Label="New Record" Class="margin: 10px 0px 0px 0px;"></MatButton>
+        <MatButton Raised="true" OnClick="Create" Label="New Record" Class="margin: 10px 0px 0px 0px;"></MatButton>
     </div>
 </div>
 
@@ -108,7 +108,7 @@ else
                     <td>@item.PurchaseDateName</td>
                     <td>@item.PurchaseProcessName</td>
                     <td>@item.PurchaseStatusName</td>
-                    <td>@item.VendorFullName</td>
+                    <td>@item.VendorName</td>
                     <td>
                         <MatButton Raised="true" OnClick="() => BarcodeItem(item.Id)" Label="Print Barcode" Class="margin: 10px 0px 0px 0px;"></MatButton>
                         <MatButton Raised="true" OnClick="() => EditPurchase(item.Id)" Label="Edit" Class="margin: 10px 0px 0px 0px;"></MatButton>
@@ -148,6 +148,13 @@ else
         pr.fromPurchaseDate = FromDate.ToString("yyyy-MM-dd");
         pr.toPurchaseDate = ToDate.ToString("yyyy-MM-dd");
         await PurchaseState.SearchPurchaseAsync(pr, token);
+
+    }
+
+
+    void Create()
+    {
+        NavigationManager.NavigateTo("/edit-purchase/0");
 
     }
 

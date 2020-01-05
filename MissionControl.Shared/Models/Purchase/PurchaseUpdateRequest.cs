@@ -10,39 +10,22 @@ namespace MissionControl.Shared.Models
     /// Represents an purchase model
     /// </summary>
 
-    public partial class PurchaseModel : BaseEntityModel
+    public partial class PurchaseUpdateRequest: BaseEntityModel
     {
-        #region Ctor
-
-
-        #endregion
 
         #region Properties
 
-
-
-        //identifiers
-
         public int VendorId { get; set; }
-
         public string VendorAddress { get; set; }
         public string VendorName { get; set; } = "";
-        public decimal PurchaseTotal { get; set; } = 0;
-        public string PurchaseTotalValue { get; set; } = "";
-        public decimal TotalWeightKg { get; set; }
-        public int PurchaseProcessId { get; set; } = 0;
-
-        public string PurchaseProcessIdValue { get; set; } = "";
-        public string PurchaseProcessName { get; set; } = "";
-        public int PurchaseStatusId { get; set; } = 0;
         public string PurchaseStatusIdValue { get; set; } = "";
-        public string PurchaseStatusName { get; set; } = "";
+        public string PurchaseProcessIdValue { get; set; } = "";
         public int TotalCrates { get; set; } = 0;
         public DateTime PurchaseDate { get; set; }
         public string PurchaseDateName { get; set; } = "";
         public string PurchaseNo { get; set; } = "";
         public decimal WeightKg { get; set; } = 0;
-        public string Remark { get; set; }
+        public string Remark { get; set; } = "";
         #endregion
 
 

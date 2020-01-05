@@ -40,26 +40,26 @@ namespace MissionControl.Server.Controllers
             _mapper = mapper;
         }
 
-        [Authorize]
-        [HttpGet("/listProducts")]
-        public IEnumerable<SelectListItem> ListProducts()
-        {
-            return SelectListHelper.GetProductList(_productService, false);
-        }
+        //[Authorize]
+        //[HttpGet("/listProducts")]
+        //public IEnumerable<SelectListItem> ListProducts()
+        //{
+        //    return SelectListHelper.GetProductList(_productService, false);
+        //}
 
-        [Authorize]
-        [HttpGet("/listPurchaseStatuses")]
-        public IEnumerable<SelectListItem> ListPurchaseStatuses(bool withSpecialDefaultItem, string defaultItemText = "All")
-        {
-            return SelectListHelper.GetPurchaseStatus(withSpecialDefaultItem, defaultItemText);
-        }
+        //[Authorize]
+        //[HttpGet("/listPurchaseStatuses")]
+        //public IEnumerable<SelectListItem> ListPurchaseStatuses(bool withSpecialDefaultItem, string defaultItemText = "All")
+        //{
+        //    return SelectListHelper.GetPurchaseStatus(withSpecialDefaultItem, defaultItemText);
+        //}
 
-        [Authorize]
-        [HttpGet("/listPurchaseProcesses")]
-        public IEnumerable<SelectListItem> ListPurchaseProcess(bool withSpecialDefaultItem, string defaultItemText = "All")
-        {
-            return SelectListHelper.GetPurchaseProcess(withSpecialDefaultItem, defaultItemText);
-        }
+        //[Authorize]
+        //[HttpGet("/listPurchaseProcesses")]
+        //public IEnumerable<SelectListItem> ListPurchaseProcess(bool withSpecialDefaultItem, string defaultItemText = "All")
+        //{
+        //    return SelectListHelper.GetPurchaseProcess(withSpecialDefaultItem, defaultItemText);
+        //}
         [Authorize]
         [HttpPost("/searchPurchase")]
         public IEnumerable<PurchaseModel> GetPurchases(PurchaseSearchRequest p)
@@ -99,9 +99,10 @@ namespace MissionControl.Server.Controllers
                     PurchaseNo = item.PurchaseNo,
                     PurchaseStatusName = item.PurchaseStatus.ToString(),
                     PurchaseProcessName = item.PurchaseProcess.ToString(),
-                    VendorFullName = (item.Vendor == null) ? "N/A" : item.Vendor.Name,
+                    VendorName = (item.Vendor == null) ? item.VendorName : item.Vendor.Name,
                     TotalCrates = item.TotalCrates,
-                    PurchaseDateName = item.PurchaseDate.HasValue ? item.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A"
+                    PurchaseDateName = item.PurchaseDate.HasValue ? item.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A",
+                    Remark = item.Remark,
                 });
             }
             return purchases;
@@ -113,13 +114,13 @@ namespace MissionControl.Server.Controllers
         {
 
             var purchaseItem = _purchaseService.GetPurchaseItemById(req.Id);
-           // purchaseItem.ProductId = req.ProductId;
+            // purchaseItem.ProductId = req.ProductId;
             purchaseItem.ProductName = req.ProductName;
             purchaseItem.PurchaseCrates = req.PurchaseCrates;
             purchaseItem.UnitPriceExclTax = req.UnitPriceExclTax;
             purchaseItem.WeightKg = req.WeightKg;
             _purchaseService.UpdatePurchaseItem(purchaseItem);
-
+            UpdateTotalCratesPurchase(req.PurchaseId);
             return GetPurchaseItemsByPurchaseId(req.PurchaseId);
         }
 
@@ -127,10 +128,11 @@ namespace MissionControl.Server.Controllers
         [HttpPost("/addPurchaseItem")]
         public IEnumerable<PurchaseItemModel> AddPurchaseItem(PurchaseItemUpdateRequest req)
         {
-
+            var purchase = _purchaseService.GetPurchaseById(req.PurchaseId);
             var purchaseItem = new PurchaseItem();
-            purchaseItem.PurchaseId = req.PurchaseId;
-          //  purchaseItem.ProductId = req.ProductId;
+            purchaseItem.Purchase = purchase;
+            purchaseItem.PurchaseId = purchase.Id;
+            //  purchaseItem.ProductId = req.ProductId;
             purchaseItem.ProductName = req.ProductName;
             purchaseItem.PurchaseCrates = req.PurchaseCrates;
             purchaseItem.UnitPriceExclTax = req.UnitPriceExclTax;
@@ -139,7 +141,47 @@ namespace MissionControl.Server.Controllers
             _purchaseService.InsertPurchaseItem(purchaseItem);
             purchaseItem.EAN = CommonUtils.GenerateBarCodeEAN13(purchaseItem.Id);
             _purchaseService.UpdatePurchaseItem(purchaseItem);
+            UpdateTotalCratesPurchase(req.PurchaseId);
             return GetPurchaseItemsByPurchaseId(req.PurchaseId);
+        }
+
+        [Authorize]
+        [HttpPost("/createOrUpdatePurchase")]
+        public PurchaseModel CreateOrUpdatePurchase(PurchaseUpdateRequest req)
+        {
+            var purchase = new Purchase();
+            if (req.Id > 0)
+                purchase = _purchaseService.GetPurchaseById(req.Id);
+            purchase.PurchaseNo = req.PurchaseNo;
+            purchase.PurchaseDate = req.PurchaseDate;
+            purchase.VendorName = req.VendorName;
+            purchase.VendorAddress = req.VendorAddress;
+            purchase.PurchaseStatusId = Int32.Parse(req.PurchaseStatusIdValue);
+            purchase.PurchaseProcessId = Int32.Parse(req.PurchaseProcessIdValue);
+            purchase.TotalCrates = req.TotalCrates;
+            purchase.Remark = req.Remark;
+            if (req.Id > 0)
+                _purchaseService.UpdatePurchase(purchase);
+            else
+                _purchaseService.InsertPurchase(purchase);
+            var purchaseModel = _mapper.Map<PurchaseModel>(purchase);
+            return purchaseModel;
+        }
+
+        private void UpdateTotalCratesPurchase(int PurchaseId)
+        {
+            Purchase purchase = _purchaseService.GetPurchaseById(PurchaseId);
+            int totalCrates = 0;
+            decimal weightKg = 0;
+            foreach (var item in _purchaseService.SearchPurchaseItems(PurchaseId))
+            {
+                totalCrates += item.PurchaseCrates;
+                weightKg += item.WeightKg;
+            }
+            purchase.TotalCrates = totalCrates;
+            purchase.TotalWeightKg = weightKg;
+            _purchaseService.UpdatePurchase(purchase);
+
         }
 
         [Authorize]
@@ -161,10 +203,12 @@ namespace MissionControl.Server.Controllers
                 PurchaseStatusId = purchase.PurchaseStatusId == null ? 0 : purchase.PurchaseStatusId.Value,
                 PurchaseStatusIdValue = purchase.PurchaseStatusId.Value.ToString(),
                 PurchaseStatusName = purchase.PurchaseStatus.ToString(),
-                VendorFullName = (purchase.Vendor == null) ? "N/A" : purchase.Vendor.Name,
+                VendorName = (purchase.Vendor == null) ? purchase.VendorName : purchase.Vendor.Name,
+                VendorAddress = purchase.VendorAddress,
                 TotalCrates = purchase.TotalCrates,
-                PurchaseDate = (purchase.PurchaseDate == null) ? DateTime.Today :purchase.PurchaseDate.Value,
-                PurchaseDateName = purchase.PurchaseDate.HasValue ? purchase.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A"
+                PurchaseDate = (purchase.PurchaseDate == null) ? DateTime.Today : purchase.PurchaseDate.Value,
+                PurchaseDateName = purchase.PurchaseDate.HasValue ? purchase.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A",
+                Remark = purchase.Remark,
             };
 
             return p;
@@ -183,9 +227,9 @@ namespace MissionControl.Server.Controllers
         public IEnumerable<PurchaseItemModel> GetAllPurchaseItems(int id)
         {
             if (id == 0)
-                return new List<PurchaseItemModel>(); 
+                return new List<PurchaseItemModel>();
 
-            return GetPurchaseItemsByPurchaseId(id); 
+            return GetPurchaseItemsByPurchaseId(id);
         }
 
 
@@ -194,11 +238,12 @@ namespace MissionControl.Server.Controllers
         public IEnumerable<PurchaseItemModel> DeletePurchaseItem(int id)
         {
             if (id == 0)
-                return new List<PurchaseItemModel>(); 
-
+                return new List<PurchaseItemModel>();
+            var purchaseItem = _purchaseService.GetPurchaseItemById(id);
+            int purchaseId = purchaseItem.PurchaseId;
             _purchaseService.DeletePurchaseItem(id);
-
-            return GetPurchaseItemsByPurchaseId(id);
+            UpdateTotalCratesPurchase(purchaseId);
+            return GetPurchaseItemsByPurchaseId(purchaseId);
 
         }
 
@@ -223,8 +268,8 @@ namespace MissionControl.Server.Controllers
                     UnitPriceExclTax = item.UnitPriceExclTax,
                     UnitPriceExclTaxValue = item.UnitPriceExclTax.ToString("N", CultureInfo.InvariantCulture),
                     PurchaseCrates = item.PurchaseCrates,
+                    SubTotalExclTax = item.SubTotalExclTax,
                     SubTotalExclTaxValue = item.SubTotalExclTax.ToString("N", CultureInfo.InvariantCulture),
-                    SubTotalExclTax = item.SubTotalExclTax
                 });
             }
             return items;
