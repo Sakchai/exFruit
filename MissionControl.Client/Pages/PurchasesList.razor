@@ -1,0 +1,161 @@
+﻿@page "/purchases-list"
+@using Microsoft.AspNetCore.Components
+@attribute [Authorize]
+@inject HttpClient Http
+@inject TokenAuthenticationStateProvider TokenProvider
+@inject PurchaseState PurchaseState
+@inject NavigationManager NavigationManager
+<style>
+    .nopadding {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+</style>
+
+<div class="row" style="margin-top: 5px;">
+    <div class="col-sm-9">
+        <h1 class="@MdcTypography.H4">Purchase List</h1>
+    </div>
+    <div class="col-sm-3" >
+        <MatButton Raised="true" OnClick="Refresh" Label="New Record" Class="margin: 10px 0px 0px 0px;"></MatButton>
+    </div>
+</div>
+
+
+@if (PurchaseState.Rows == null)
+{
+    <MdcLinearProgress />
+}
+else
+{
+
+    <div class="mdc-card main-content-card">
+        <div class="row">
+
+            <div class="col-sm-4">
+                <label class="control-label">From Date:</label>
+                <MatDatePicker @bind-Value="FromDate" Format="yyyy-MM-dd" Class="form-control nopadding text-box"></MatDatePicker>
+            </div>
+            <div class="col-md-4">
+                <label class="control-label">To Date:</label>
+                <MatDatePicker @bind-Value="ToDate" Format="yyyy-MM-dd" Class="form-control nopadding text-box"></MatDatePicker>
+            </div>
+            <div class="col-md-4">
+                <label class="control-label">Process Status:&nbsp;&nbsp;</label>
+                <MatSelect @bind-Value="pr.purchaseProcessId">
+                    <MatOptionString Value="0">All</MatOptionString>
+                    <MatOptionString Value="10">Purchase</MatOptionString>
+                    <MatOptionString Value="20">Receive</MatOptionString>
+                    <MatOptionString Value="30">Sort</MatOptionString>
+                    <MatOptionString Value="40">Sorted</MatOptionString>
+                </MatSelect>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-4">
+                <label class="control-label">PO#:</label>
+                <MatTextField @bind-Value="pr.purchaseNo" Class="form-control nopadding"></MatTextField>
+            </div>
+
+            <div class="col-md-4">
+                <label class="control-label">Product:</label>
+                <MatTextField @bind-Value="pr.productName" Class="form-control nopadding"></MatTextField>
+            </div>
+
+            <div class="col-md-4">
+                <label class="control-label">Purchase Status:</label>
+                <MatSelect @bind-Value="pr.purchaseStatusId">
+                    <MatOptionString Value="0">All</MatOptionString>
+                    <MatOptionString Value="10">Pending</MatOptionString>
+                    <MatOptionString Value="20">Paid</MatOptionString>
+                    <MatOptionString Value="30">Cancelled</MatOptionString>
+                </MatSelect>
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-sm-4">
+                <label class="control-label">Suppier:</label>
+                <MatTextField @bind-Value="pr.vendorName" Class="form-control nopadding text-box"></MatTextField>
+            </div>
+            <div class="col-md-8">
+                <div style="margin-top: 30px;">
+                    <MatButton Raised="true" OnClick="Refresh" Label="Search" Class="margin: 10px 0px 0px 0px;"></MatButton>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <table class="mdc-card">
+        <thead>
+            <tr>
+                <th>PO#</th>
+                <th>Purchase Date</th>
+                <th>Process Status</th>
+                <th>Purchase Status</th>
+                <th>Supplier</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in PurchaseState.Rows.ToList())
+            {
+                <tr>
+                    <td>@item.PurchaseNo</td>
+                    <td>@item.PurchaseDateName</td>
+                    <td>@item.PurchaseProcessName</td>
+                    <td>@item.PurchaseStatusName</td>
+                    <td>@item.VendorFullName</td>
+                    <td>
+                        <MatButton Raised="true" OnClick="() => BarcodeItem(item.Id)" Label="Print Barcode" Class="margin: 10px 0px 0px 0px;"></MatButton>
+                        <MatButton Raised="true" OnClick="() => EditPurchase(item.Id)" Label="Edit" Class="margin: 10px 0px 0px 0px;"></MatButton>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    public string urlEditPurchase { get; set; }
+    public DateTime FromDate { get; set; }
+    public DateTime ToDate { get; set; }
+    public string frDate = "";
+    public string toDate = "";
+    public PurchaseSearchRequest pr = new PurchaseSearchRequest();
+    protected override async Task OnInitializedAsync()
+    {
+        ToDate = DateTime.Now;
+        FromDate = DateTime.Now.AddDays(-30);
+        frDate = FromDate.ToString("yyyy-MM-dd");
+        toDate = ToDate.ToString("yyyy-MM-dd");
+        await Refresh();
+    }
+
+    void EditPurchase(int id)
+    {
+        string urlEditPurchase = $"edit-purchase/{id}";
+        NavigationManager.NavigateTo(urlEditPurchase);
+    }
+
+    async Task Refresh()
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        Console.WriteLine(token);
+        pr.fromPurchaseDate = FromDate.ToString("yyyy-MM-dd");
+        pr.toPurchaseDate = ToDate.ToString("yyyy-MM-dd");
+        await PurchaseState.SearchPurchaseAsync(pr, token);
+
+    }
+
+    async Task BarcodeItem(int id)
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        Console.WriteLine(token);
+        PurchaseState.BarcodeItem(id, token);
+
+    }
+}

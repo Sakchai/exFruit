@@ -1,0 +1,127 @@
+﻿@page "/receives-list"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject TokenAuthenticationStateProvider TokenProvider
+@inject ReceptionState ReceptionState
+
+<h1 class="@MdcTypography.H4">Receive Products</h1>
+
+@if (ReceptionState == null)
+{
+    <MdcLinearProgress />
+}
+else
+{
+
+    <div class="mdc-card main-content-card">
+        <div class="row">
+            <div class="col-sm-3">
+                <label class="control-label">Barcode:</label>
+                <form @onsubmit="AddItem">
+                    <input type="search" id="eanText" name="eanText" @bind="eanText" />
+                </form>
+            </div>
+            <div class="col-sm-3">
+
+            </div>
+            <div class="col-sm-3">
+
+            </div>
+            <div class="col-sm-3">
+                @if (ReceptionState.Rows.Count > 0)
+                {
+                    <MatButton @onclick="SaveItems" Raised="true" class="btn btn-success">💳 Save</MatButton>
+                }
+            </div>
+        </div>
+    </div>
+
+    @foreach (var Data in ReceptionState.Rows.ToList())
+    {
+        <div class="mdc-card main-content-card">
+
+            <div class="row">
+                <div class="col-sm-3">
+                    <label class="control-label">Product:</label>
+                    <input class="form-control text-box single-line" readonly value="@Data.ProductName">
+                </div>
+                <div class="col-sm-3">
+                    <label class="control-label">Grade:</label>
+                    <label class="form-control text-box single-line">@Data.ReceivedFruitGradeType</label>
+                </div>
+                <div class="col-sm-3">
+                    <label class="control-label">Actual Weight (kg):</label>
+                    <label class="form-control text-box single-line">@Data.ReceivedActualWeight</label>
+                </div>
+                <div class="col-md-3">
+                    <MatButton Raised="true" class="btn btn-danger" OnClick="e => DeleteItem(Data.Id)">✗ Remove item </MatButton>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label class="control-label">Total Weight (kg):</label>
+                    <input class="form-control text-box single-line" readonly value="@Data.WeightKg">
+                </div>
+
+                <div class="col-sm-3">
+                    <label class="control-label">Received Crates (kg):</label>
+                    <input id="ReceivedCratesWeight" @bind="@Data.ReceivedCratesWeight" class="form-control text-box single-line" />
+                </div>
+                <div class="col-md-3">
+                    <label class="control-label">Total Weight (kg):</label>
+                    <input id="ReceivedCratesWeight" @bind="@Data.ReceivedTotalWeight" class="form-control text-box single-line" />
+                </div>
+                <div class="col-md-3">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="control-label">Crates (kg):</label>
+                    <input class="form-control text-box single-line" readonly value="@Data.PurchaseCrates">
+                </div>
+
+                <div class="col-sm-6">
+                    <label class="control-label">Notes:</label>
+                    <label class="form-control text-box single-line">@Data.ReceivedNotes</label>
+                </div>
+                <div class="col-md-3">
+
+                </div>
+            </div>
+
+        </div>
+    }
+
+}
+
+@code {
+
+
+    string eanText { get; set; }
+
+    async Task AddItem()
+    {
+        var ean = eanText.ToLower();
+        if (!string.IsNullOrWhiteSpace(ean))
+        {
+            var token = await TokenProvider.GetTokenAsync();
+            await ReceptionState.AddItemAsync(ean, token);
+        }
+        eanText = string.Empty;
+        StateHasChanged();
+    }
+
+    void DeleteItem(int id)
+    {
+        ReceptionState.RemoveItem(id);
+    }
+
+    async Task SaveItems()
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        var user = string.Empty;
+        await ReceptionState.SaveItemsAsync(user, token);
+        eanText = string.Empty;
+    }
+}
