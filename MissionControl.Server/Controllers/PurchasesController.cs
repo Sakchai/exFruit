@@ -11,6 +11,7 @@ using MissionControl.Shared.Models.Purchase;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MissionControl.Server.Controllers
@@ -23,19 +24,19 @@ namespace MissionControl.Server.Controllers
 
         private readonly IPdfService _pdfService;
         private readonly IPurchaseService _purchaseService;
-        private readonly IPurchaseModelFactory _purchaseModelFactory;
+        //private readonly IPurchaseModelFactory _purchaseModelFactory;
         private readonly IProductService _productService;
         private readonly IMapper _mapper;
 
         public PurchasesController(IPurchaseService purchaseService,
             IPdfService pdfService,
-            IPurchaseModelFactory purchaseModelFactory,
+          //  IPurchaseModelFactory purchaseModelFactory,
             IProductService productService,
             IMapper mapper)
         {
             _purchaseService = purchaseService;
             _pdfService = pdfService;
-            _purchaseModelFactory = purchaseModelFactory;
+           // _purchaseModelFactory = purchaseModelFactory;
             _productService = productService;
             _mapper = mapper;
         }
@@ -153,7 +154,7 @@ namespace MissionControl.Server.Controllers
             if (req.Id > 0)
                 purchase = _purchaseService.GetPurchaseById(req.Id);
             purchase.PurchaseNo = req.PurchaseNo;
-            purchase.PurchaseDate = req.PurchaseDate;
+            purchase.PurchaseDate = req.PurchaseDate.Date;
             purchase.VendorName = req.VendorName;
             purchase.VendorAddress = req.VendorAddress;
             purchase.PurchaseStatusId = Int32.Parse(req.PurchaseStatusIdValue);
@@ -216,10 +217,27 @@ namespace MissionControl.Server.Controllers
         }
 
         [HttpGet("/purchaseBarcode/{id}")]
-        public ActionResult<string> GetBarcode([FromRoute] int id)
+        public ActionResult GetBarcode([FromRoute] int id)
         {
+            byte[] bytes;
+            using (var stream = new MemoryStream())
+            {
+                _pdfService.PrintBarcodeToPdf(stream, id);
+                bytes = stream.ToArray();
+            }
 
-            return (id == 0) ? string.Empty : _pdfService.PrintBarcodeToPdf(id);
+            string guid = string.Format("{0,10:D6}", id).Trim();
+            var fileName = $"barcode_{guid}_{GenerateRandomDigitCode(2)}.pdf";
+            return File(bytes, "application/pdf", fileName);
+        }
+
+        public static string GenerateRandomDigitCode(int length)
+        {
+            var random = new Random();
+            var str = string.Empty;
+            for (var i = 0; i < length; i++)
+                str = string.Concat(str, random.Next(10).ToString());
+            return str;
         }
 
         [Authorize]

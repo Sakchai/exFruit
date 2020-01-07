@@ -1,6 +1,7 @@
 ﻿@page "/purchases-list"
 @using Microsoft.AspNetCore.Components
 @attribute [Authorize]
+@inject IJSRuntime JSRuntime
 @inject HttpClient Http
 @inject TokenAuthenticationStateProvider TokenProvider
 @inject PurchaseState PurchaseState
@@ -16,7 +17,7 @@
     <div class="col-sm-9">
         <h1 class="@MdcTypography.H4">Purchase List</h1>
     </div>
-    <div class="col-sm-3" >
+    <div class="col-sm-3">
         <MatButton Raised="true" OnClick="Create" Label="New Record" Class="margin: 10px 0px 0px 0px;"></MatButton>
     </div>
 </div>
@@ -110,7 +111,8 @@ else
                     <td>@item.PurchaseStatusName</td>
                     <td>@item.VendorName</td>
                     <td>
-                        <MatButton Raised="true" OnClick="() => BarcodeItem(item.Id)" Label="Print Barcode" Class="margin: 10px 0px 0px 0px;"></MatButton>
+                        <MatButton Raised="true" OnClick="() => BarcodeItem(item.Id)" Label="Download Barcode" Class="margin: 10px 0px 0px 0px;"></MatButton>
+
                         <MatButton Raised="true" OnClick="() => EditPurchase(item.Id)" Label="Edit" Class="margin: 10px 0px 0px 0px;"></MatButton>
                     </td>
                 </tr>
@@ -158,11 +160,12 @@ else
 
     }
 
+    int purchaseId;
     async Task BarcodeItem(int id)
     {
-        var token = await TokenProvider.GetTokenAsync();
-        Console.WriteLine(token);
-        PurchaseState.BarcodeItem(id, token);
-
+        purchaseId = id;
+        await JSRuntime.InvokeAsync<object>("PdfFileSaveAs",purchaseId);
     }
+
+
 }

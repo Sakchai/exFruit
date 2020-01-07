@@ -8,34 +8,48 @@ using iTextSharp.text.pdf;
 using System.Threading.Tasks;
 using MissionControl.Shared;
 using MissionControl.Shared.Models.Common;
+using Microsoft.Extensions.Configuration;
 
 namespace MissionControl.Services.Common
 {
     public partial class PdfService : IPdfService
     {
         private readonly IRepository<Purchase> _purchaseRepository;
-
-        public PdfService(IRepository<Purchase> purchaseRepository)
+        private readonly IRepository<PurchaseItem> _purchaseItemRepository;
+        private readonly IConfiguration _config;
+        private string ExportPath { get; set; }
+        private string ExportURL { get; set; }
+        public PdfService(IRepository<Purchase> purchaseRepository,
+            IRepository<PurchaseItem> purchaseItemRepository,
+            IConfiguration config)
         {
             _purchaseRepository = purchaseRepository;
+            _purchaseItemRepository = purchaseItemRepository;
+            _config = config;
+            ExportPath = _config.GetValue<string>("ExportPath", string.Empty);
+            ExportURL = _config.GetValue<string>("ExportURL", string.Empty);
         }
 
-        public string PrintBarcodeToPdf(int purchaseId)
+        public void PrintBarcodeToPdf(Stream stream,int purchaseId)
         {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
             var purchase = _purchaseRepository.GetById(purchaseId);
             if (purchase == null)
                 throw new ArgumentNullException(nameof(purchase));
-            string guid = string.Format("{0,10:D6}", purchase.Id).Trim();
-            var fileName = $"barcode_{guid}_{GenerateRandomDigitCode(2)}.pdf";
-            var filePath = Combine(MapPath("~/wwwroot/files/exportimport"), fileName);
+          //  string guid = string.Format("{0,10:D6}", purchase.Id).Trim();
+          //  var fileName = $"barcode_{guid}_{GenerateRandomDigitCode(2)}.pdf";
+            //var filePath = Combine(MapPath(ExportPath), fileName);
             //var filePath = string.Format(@"C:\source\blazor\blazor-TropiThai\src\BlazingPizza.Client\wwwroot\files\exportimport\{0}", fileName);
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
+            //var filePath = string.Format(ExportPath, fileName);
+            //using (var fileStream = new FileStream(filePath, FileMode.Create))
+            //{
                 var purchases = new List<Purchase> { purchase };
-                PrintPurchasesToPdf(fileStream, purchases);
-            }
+                PrintPurchasesToPdf(stream, purchases);
+            //}
 
-            return filePath;
+            //return fileName;
         }
 
         public virtual string MapPath(string path)
@@ -147,8 +161,9 @@ namespace MissionControl.Services.Common
         protected void PrintBarcodes(PdfWriter pdfWriter, Document doc, Purchase purchase)
         {
             PdfPTable table = new PdfPTable(1);
-
-            foreach (var purchaseItem in purchase.PurchaseItems)
+            var  query = _purchaseItemRepository.Table;
+            var purchaseItems = query.Where(x => x.PurchaseId == purchase.Id).ToList();
+            foreach (var purchaseItem in purchaseItems)
             {
                 iTextSharp.text.pdf.PdfContentByte cb = pdfWriter.DirectContent;
                 iTextSharp.text.pdf.Barcode128 bc = new Barcode128();
@@ -232,5 +247,24 @@ namespace MissionControl.Services.Common
             return new PdfPCell(new Phrase(value, font));
         }
 
+        public string PrintBarcodeToFilePdf(int purchaseId)
+        {
+            var purchase = _purchaseRepository.GetById(purchaseId);
+            if (purchase == null)
+                throw new ArgumentNullException(nameof(purchase));
+            string guid = string.Format("{0,10:D6}", purchase.Id).Trim();
+            //var fileName = $"barcode_{guid}_{GenerateRandomDigitCode(2)}.pdf";
+            var fileName = $"barcode_{purchase.Id}.pdf";
+            //var filePath = Combine(MapPath(ExportPath), fileName);
+            //var filePath = string.Format(@"C:\source\blazor\blazor-TropiThai\src\BlazingPizza.Client\wwwroot\files\exportimport\{0}", fileName);
+            var filePath = string.Format(ExportPath, fileName);
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                var purchases = new List<Purchase> { purchase };
+                PrintPurchasesToPdf(fileStream, purchases);
+            }
+
+            return fileName;
+        }
     }
 }

@@ -6,6 +6,7 @@ using MissionControl.Shared.Models.Purchase;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -155,13 +156,5 @@ namespace MissionControl.Client
             await GetPurchaseItemList(id, token, apiRequest);
         }
 
-        public void BarcodeItem(int id, string token)
-        {
-            var apiRequest = $"{BackendUrl}/barcodePurchase";
-            if (id != 0)
-            {
-
-            }
-        }
     }
 }
