@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using MissionControl.Client.Util;
 using MissionControl.Shared.Models;
+using MissionControl.Shared.Models.Common;
 using MissionControl.Shared.Models.Purchase;
 using Newtonsoft.Json;
 using System;
@@ -23,6 +24,10 @@ namespace MissionControl.Client
 
         public PurchaseModel Header;
         public List<PurchaseItemModel> Details;
+        public List<SelectListItem> Products;
+        public List<SelectListItem> Vendors;
+        public List<SelectListItem> PurchaseStatuses;
+        public List<SelectListItem> PurchaseProcesses;
 
         public PurchaseState(HttpClient httpClient)
         {
@@ -50,6 +55,25 @@ namespace MissionControl.Client
             }
         }
 
+        public async Task SearchPurchaseListAsync(PurchaseSearchRequest purchaseSearchRequest, string token)
+        {
+
+            var apiRequest = $"{BackendUrl}/searchPurchaseList";
+            Console.WriteLine(apiRequest);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+
+                var strPayload = JsonConvert.SerializeObject(purchaseSearchRequest);
+                Console.WriteLine($"strPayload={strPayload}");
+                var items = await _httpClient.PostJsonAsync<PurchaseListModel>(apiRequest, strPayload,
+                                new AuthenticationHeaderValue("Bearer", token));
+                Rows = items.Data.ToList();
+                Products = items.Products.ToList();
+                Vendors = items.Vendors.ToList();
+                PurchaseStatuses = items.PurchaseStatus.ToList();
+                PurchaseProcesses = items.PurchaseProcessStatus.ToList();
+            }
+        }
         public async Task UpdatePurchaseItemAsync(PurchaseItemUpdateRequest updateRequest, string token)
         {
             var apiRequest = $"{BackendUrl}/updatePurchaseItem";

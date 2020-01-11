@@ -26,10 +26,12 @@ namespace MissionControl.Server.Controllers
         private readonly IPurchaseService _purchaseService;
         //private readonly IPurchaseModelFactory _purchaseModelFactory;
         private readonly IProductService _productService;
+        private readonly IVendorService _vendorService;
         private readonly IMapper _mapper;
 
         public PurchasesController(IPurchaseService purchaseService,
-            IPdfService pdfService,
+            IVendorService vendorService,
+        IPdfService pdfService,
           //  IPurchaseModelFactory purchaseModelFactory,
             IProductService productService,
             IMapper mapper)
@@ -38,6 +40,8 @@ namespace MissionControl.Server.Controllers
             _pdfService = pdfService;
            // _purchaseModelFactory = purchaseModelFactory;
             _productService = productService;
+            _vendorService = vendorService;
+
             _mapper = mapper;
         }
 
@@ -107,6 +111,100 @@ namespace MissionControl.Server.Controllers
                 });
             }
             return purchases;
+        }
+
+        [Authorize]
+        [HttpPost("/searchPurchaseList")]
+        public PurchaseListModel SearchPurchaseList(PurchaseSearchRequest p)
+        {
+            DateTime? FromDate = null;
+            if (!string.IsNullOrWhiteSpace(p.fromPurchaseDate))
+            {
+                FromDate = Convert.ToDateTime(p.fromPurchaseDate);
+            }
+            DateTime? ToDate = null;
+            if (!string.IsNullOrWhiteSpace(p.toPurchaseDate))
+            {
+                ToDate = Convert.ToDateTime(p.toPurchaseDate);
+            }
+            int statusId = 0;
+            if (!string.IsNullOrWhiteSpace(p.purchaseStatusId))
+            {
+                statusId = Int32.Parse(p.purchaseStatusId);
+            }
+            int processId = 0;
+            if (!string.IsNullOrWhiteSpace(p.purchaseProcessId))
+            {
+                processId = Int32.Parse(p.purchaseProcessId);
+            }
+
+            var items = _purchaseService.SearchPurchases(p.vendorName, p.productName, FromDate,
+                            ToDate, p.purchaseNo, statusId, processId);
+
+            var purchases = CreatePurchaseModelList(items);
+
+            var purchaseListModel = new PurchaseListModel();
+            purchaseListModel.Data = purchases;
+            purchaseListModel.HasNextPage = items.HasNextPage;
+            purchaseListModel.HasPreviousPage = items.HasPreviousPage;
+            purchaseListModel.PageIndex = items.PageIndex;
+            purchaseListModel.PageSize = items.PageSize;
+            purchaseListModel.TotalCount = items.TotalCount;
+            purchaseListModel.TotalPages = items.TotalPages;
+            purchaseListModel.PurchaseStatus = p.purchaseStatusId.Equals("0") ? SelectListHelper.GetPurchaseStatus(false, "ALL")
+                                                : SelectListHelper.GetPurchaseStatus(true, p.purchaseStatusName);
+            purchaseListModel.PurchaseProcessStatus = p.purchaseProcessId.Equals("0") ? SelectListHelper.GetPurchaseProcess(false, "ALL")
+                                                : SelectListHelper.GetPurchaseProcess(true, p.purchaseProcessName);
+            purchaseListModel.Products = SelectListHelper.GetProductList(_productService, false);
+            purchaseListModel.Vendors = SelectListHelper.GetVendorList(_vendorService, false);
+            return purchaseListModel;
+        }
+
+        private static List<PurchaseModel> CreatePurchaseModelList(IPagedList<Purchase> items)
+        {
+            var purchases = new List<PurchaseModel>();
+
+            foreach (var item in items)
+            {
+
+                purchases.Add(new PurchaseModel
+                {
+                    Id = item.Id,
+                    PurchaseNo = item.PurchaseNo,
+                    PurchaseStatusName = item.PurchaseStatus.ToString(),
+                    PurchaseProcessName = item.PurchaseProcess.ToString(),
+                    VendorName = (item.Vendor == null) ? item.VendorName : item.Vendor.Name,
+                    TotalCrates = item.TotalCrates,
+                    PurchaseDateName = item.PurchaseDate.HasValue ? item.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A",
+                    Remark = item.Remark,
+                });
+            }
+
+            return purchases;
+        }
+
+        private List<ProductModel> GetProductList(string name,int id)
+        {
+            var products = _productService.GetAllProducts(name,id);
+            var productList = new List<ProductModel>();
+            foreach (var item in products)
+            {
+                productList.Add(new ProductModel { Id = item.Id, Name = item.Name });
+            }
+
+            return productList;
+        }
+
+        private List<VendorModel> GetVendorList(string name,int id)
+        {
+            var vendors = _vendorService.GetAllVendors(name,id);
+            var verdorList = new List<VendorModel>();
+            foreach (var item in vendors)
+            {
+                verdorList.Add(new VendorModel { Id = item.Id, Name = item.Name });
+            }
+
+            return verdorList;
         }
 
         [Authorize]

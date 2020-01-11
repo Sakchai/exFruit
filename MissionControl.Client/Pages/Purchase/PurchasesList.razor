@@ -1,4 +1,4 @@
-﻿@page "/purchases-list"
+﻿@page "/purchase/list"
 @using Microsoft.AspNetCore.Components
 @attribute [Authorize]
 @inject IJSRuntime JSRuntime
@@ -156,7 +156,7 @@ else
 
     void Create()
     {
-        NavigationManager.NavigateTo("/edit-purchase/0");
+        NavigationManager.NavigateTo("/purchase/edit/0");
 
     }
 

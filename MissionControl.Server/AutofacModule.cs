@@ -23,6 +23,7 @@ namespace MissionControl.Server
 
             builder.RegisterGeneric(typeof(EfRepository<>)).As(typeof(IRepository<>)).InstancePerLifetimeScope();
             builder.RegisterType<ProductService>().As<IProductService>().InstancePerLifetimeScope();
+            builder.RegisterType<VendorService>().As<IVendorService>().InstancePerLifetimeScope();
             builder.RegisterType<PurchaseService>().As<IPurchaseService>().InstancePerLifetimeScope();
             builder.RegisterType<PdfService>().As<IPdfService>().InstancePerLifetimeScope();
             builder.RegisterType<PurchaseModelFactory>().As<IPurchaseModelFactory>().InstancePerLifetimeScope();

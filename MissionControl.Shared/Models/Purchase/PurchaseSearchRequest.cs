@@ -20,13 +20,16 @@ namespace MissionControl.Shared.Models
         public string toPurchaseDate { get; set; } = "";
 
         public string purchaseStatusId { get; set; } = "0";
+        public string purchaseStatusName { get; set; } = "";
 
         public string purchaseProcessId { get; set; } = "0";
+        public string purchaseProcessName { get; set; } = "";
 
         public string productName { get; set; } = "";
         public string purchaseNo { get; set; } = "";
         public string vendorName { get; set; } = "";
-
+        public string venderId { get; set; } = "0";
+        public string productId { get; set; } = "0";
         #endregion
 
 

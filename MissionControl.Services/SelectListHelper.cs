@@ -28,6 +28,25 @@ namespace MissionControl.Services
 
         }
 
+        public static List<SelectListItem> GetVendorList(IVendorService vendorService, bool showHidden = false)
+        {
+            if (vendorService == null)
+                throw new ArgumentNullException(nameof(vendorService));
+
+            var vendors = vendorService.GetAllVendors();
+            var items = new List<SelectListItem>();
+            foreach (var item in vendors)
+            {
+                items.Add(new SelectListItem
+                {
+                    Text = item.Name,
+                    Value = item.Id.ToString()
+                });
+            };
+            return items;
+
+        }
+
         public static List<SelectListItem> GetPurchaseStatus(bool withSpecialDefaultItem, string defaultItemText = null)
         {
             var items = new List<SelectListItem>();

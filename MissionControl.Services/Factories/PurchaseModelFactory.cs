@@ -45,7 +45,7 @@ namespace MissionControl.Services.Factories
                 }); 
             }
             var purchaseListModel = new PurchaseListModel();
-            purchaseListModel.PurchaseModel = purchaseModels.ToArray();
+            purchaseListModel.Data = purchaseModels.ToArray();
             return purchaseListModel;
         }
 

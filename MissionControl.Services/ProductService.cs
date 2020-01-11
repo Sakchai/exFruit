@@ -22,11 +22,14 @@ namespace MissionControl.Services
             return await _productRepository.Table.ToListAsync();
         }
 
-        public IPagedList<Product> GetAllProducts(string name = "", int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false)
+        public IPagedList<Product> GetAllProducts(string name = "",int id = 0, int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false)
         {
             var query = _productRepository.Table;
             if (!string.IsNullOrWhiteSpace(name))
                 query = query.Where(v => v.Name.Contains(name));
+
+            if (id > 0)
+                query = query.Where(x => x.Id == id);
 
             var products = new PagedList<Product>(query, pageIndex, pageSize);
             return products;

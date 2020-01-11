@@ -11,6 +11,6 @@ namespace MissionControl.Services
     {
         Task<IList<Product>> GetAllProductsAsync();
 
-        IPagedList<Product> GetAllProducts(string name = "", int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false);
+        IPagedList<Product> GetAllProducts(string name = "", int id = 0, int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false);
     }
 }
