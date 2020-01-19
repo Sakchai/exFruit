@@ -8,7 +8,6 @@ namespace MissionControl.Shared.Models.Common
     [Serializable]
     public class PagedList<T> : List<T>, IPagedList<T>
     {
-        public IEnumerable<T> Data { get; private set; }
         /// <summary>
         /// Ctor
         /// </summary>
@@ -30,7 +29,7 @@ namespace MissionControl.Shared.Models.Common
             if (getOnlyTotalCount)
                 return;
             AddRange(source.Skip(pageIndex * pageSize).Take(pageSize).ToList());
-            Data = source.Skip(pageIndex * pageSize).Take(pageSize).ToList();
+          
         }
 
         /// <summary>
@@ -50,7 +49,7 @@ namespace MissionControl.Shared.Models.Common
             PageSize = pageSize;
             PageIndex = pageIndex;
             AddRange(source.Skip(pageIndex * pageSize).Take(pageSize).ToList());
-            Data = source.Skip(pageIndex * pageSize).Take(pageSize).ToList();
+            
         }
 
         /// <summary>
@@ -71,7 +70,6 @@ namespace MissionControl.Shared.Models.Common
             PageSize = pageSize;
             PageIndex = pageIndex;
             AddRange(source);
-            Data = source;
         }
 
         /// <summary>

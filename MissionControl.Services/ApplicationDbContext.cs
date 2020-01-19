@@ -107,12 +107,22 @@ namespace MissionControl.Services
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>().ToTable(nameof(Product));
-            modelBuilder.Entity<Vendor>().ToTable(nameof(Vendor));
+
+            CreatingVendor(modelBuilder);
+
             modelBuilder.Entity<Reception>().ToTable(nameof(Reception));
             modelBuilder.Entity<Reception>().HasKey(r => r.Id);
             modelBuilder.Entity<Sortation>().ToTable(nameof(Sortation));
             modelBuilder.Entity<Sortation>().HasKey(s => s.Id);
 
+            CreatingPurchase(modelBuilder);
+            // Purchase Item
+            CreatingPurchaseItem(modelBuilder);
+            base.OnModelCreating(modelBuilder);
+        }
+
+        private static void CreatingPurchase(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Purchase>().ToTable(nameof(Purchase));
             modelBuilder.Entity<Purchase>().HasKey(p => p.Id);
             modelBuilder.Entity<Purchase>().Property(p => p.TotalWeightKg).HasColumnType("decimal(18, 4)");
@@ -123,7 +133,10 @@ namespace MissionControl.Services
                               .HasForeignKey(purchase => purchase.VendorId);
             modelBuilder.Entity<Purchase>().Ignore(purchase => purchase.PurchaseStatus);
             modelBuilder.Entity<Purchase>().Ignore(purchase => purchase.PurchaseProcess);
-            // Purchase Item
+        }
+
+        private static void CreatingPurchaseItem(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<PurchaseItem>().ToTable(nameof(PurchaseItem));
             modelBuilder.Entity<PurchaseItem>().HasKey(p => p.Id);
             modelBuilder.Entity<PurchaseItem>().Property(purchaseItem => purchaseItem.UnitPriceInclTax).HasColumnType("decimal(18, 4)");
@@ -144,7 +157,17 @@ namespace MissionControl.Services
             modelBuilder.Entity<PurchaseItem>().HasOne(purchaseItem => purchaseItem.Product)
                 .WithMany()
                 .HasForeignKey(purchaseItem => purchaseItem.ProductId);
-            base.OnModelCreating(modelBuilder);
+        }
+
+        private static void CreatingVendor(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Vendor>().ToTable(nameof(Vendor));
+            modelBuilder.Entity<Vendor>().Ignore(x => x.CompanyType);
+            modelBuilder.Entity<Vendor>().Ignore(x => x.CountryType);
+            modelBuilder.Entity<Vendor>().Ignore(x => x.TaxType);
+            modelBuilder.Entity<Vendor>().HasOne(x => x.Address)
+                                .WithMany()
+                                .HasForeignKey(x => x.AddressId);
         }
     }
 }

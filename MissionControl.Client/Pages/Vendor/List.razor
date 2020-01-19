@@ -1,0 +1,178 @@
+﻿@page "/Vendor/List"
+@using Microsoft.AspNetCore.Components
+@attribute [Authorize]
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject TokenAuthenticationStateProvider TokenProvider
+@inject VendorState VendorState
+@inject NavigationManager NavigationManager
+<style>
+    .nopadding {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+</style>
+
+<div class="row" style="margin-top: 5px;">
+    <div class="col-sm-9">
+        <h1 class="@MdcTypography.H4">Vendor List</h1>
+    </div>
+    <div class="col-sm-3">
+        <MatButton Raised="true" OnClick="Create" Label="New Record" Class="margin: 10px 0px 0px 0px;"></MatButton>
+    </div>
+</div>
+
+
+@if (VendorState.Rows == null)
+{
+<MdcLinearProgress />
+}
+else
+{
+
+<div class="mdc-card main-content-card">
+    <div class="row">
+        <div class="col-sm-4">
+            <label class="control-label">Code:</label>
+            <MatTextField @bind-Value="pr.VendorCode" Class="form-control nopadding"></MatTextField>
+        </div>
+
+        <div class="col-sm-4">
+            <label class="control-label">Vendor Name:</label>
+            <MatTextField @bind-Value="pr.Name" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+            <label class="control-label">Choose Country:&nbsp;&nbsp;</label>
+            <MatSelect @bind-Value="pr.CountryTypeId">
+                <MatOptionString Value="0">All</MatOptionString>
+                <MatOptionString Value="10">Thailand</MatOptionString>
+                <MatOptionString Value="20">Other Country</MatOptionString>
+            </MatSelect>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <label class="control-label">Tax ID:</label>
+            <MatTextField @bind-Value="pr.TaxId" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+            <label class="control-label">Company Type:</label>
+            <MatSelect @bind-Value="pr.CompanyTypeId">
+                <MatOptionString Value="0">All</MatOptionString>
+                <MatOptionString Value="10">Individual</MatOptionString>
+                <MatOptionString Value="20">Company Limited</MatOptionString>
+                <MatOptionString Value="30">Public Company Limited</MatOptionString>
+            </MatSelect>
+        </div>
+        <div class="col-md-4">
+            <label class="control-label">Tax Type:&nbsp;&nbsp;</label>
+            <MatSelect @bind-Value="pr.TaxTypeId">
+                <MatOptionString Value="0">All</MatOptionString>
+                <MatOptionString Value="10">None</MatOptionString>
+                <MatOptionString Value="20">Head Office</MatOptionString>
+                <MatOptionString Value="30">Branch</MatOptionString>
+            </MatSelect>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-12">
+            <div style="margin-top: 30px;">
+                <MatButton Raised="true" OnClick="Refresh" Label="Search" Class="margin: 10px 0px 0px 0px;"></MatButton>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<table class="mdc-card">
+    <thead>
+        <tr>
+            <th>Code#</th>
+            <th>Name</th>
+            <th>Tax ID</th>
+            <th>Company Type</th>
+            <th>Tax Type</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in VendorState.Rows.ToList())
+            {
+        <tr>
+            <td>@item.VendorCode</td>
+            <td>@item.Name</td>
+            <td>@item.TaxID</td>
+            <td>@item.CompanyTypeName</td>
+            <td>@item.TaxTypeName</td>
+            <td>
+                <MatButton Raised="true" OnClick="() => EditVendor(item.Id)" Label="Edit" Class="margin: 10px 0px 0px 0px;"></MatButton>
+                <MatButton Raised="true" OnClick="@(e => beforeDeleteVendor(item.Id))" Label="Delete" Class="margin: 10px 0px 0px 0px;"></MatButton>
+
+            </td>
+        </tr>
+            }
+    </tbody>
+</table>
+}
+
+<MatDialog @bind-IsOpen="@dialogIsDelete">
+    <MatDialogTitle>Confirmation</MatDialogTitle>
+    <MatDialogContent>
+        <p>Do you wich to delete this record?</p>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="() => DeleteItem(vendor.Id)">OK</MatButton>
+        <MatButton OnClick="@(e => { dialogIsDelete = false; })">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code {
+    public string urlEditVendor { get; set; }
+    public VendorSearchRequest pr = new VendorSearchRequest();
+    public VendorModel vendor = new VendorModel();
+    public int itemDeleteId { get; set; }
+    bool dialogIsDelete = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+
+    void EditVendor(int id)
+    {
+        string urlEditVendor = $"Vendor/Edit/{id}";
+        NavigationManager.NavigateTo(urlEditVendor);
+    }
+
+    async Task Refresh()
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        Console.WriteLine(token);
+        await VendorState.SearchVendorListAsync(pr, token);
+    }
+
+
+    void Create()
+    {
+        NavigationManager.NavigateTo("/Vendor/Edit/0");
+
+    }
+
+    void beforeDeleteVendor(int id)
+    {
+        vendor = VendorState.Rows.FirstOrDefault(x => x.Id == id);
+        dialogIsDelete = true;
+    }
+    async Task DeleteItem(int id)
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        Console.WriteLine($"id:{id}");
+        await VendorState.DeleteVendorAsync(id, token);
+        dialogIsDelete = false;
+    }
+
+}

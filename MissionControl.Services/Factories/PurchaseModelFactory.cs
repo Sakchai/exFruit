@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MissionControl.Shared;
 using MissionControl.Shared.Enum;
 using MissionControl.Shared.Models;
 using MissionControl.Shared.Models.Common;
@@ -21,33 +22,75 @@ namespace MissionControl.Services.Factories
             _purchaseService = purchaseService;
         }
 
-        public PurchaseListModel PreparePurchaseListModel(PurchaseSearchModel searchModel)
+        public PurchaseListModel PreparePurchaseListModel(PurchaseSearchRequest p)
         {
-            if (searchModel == null)
-                throw new ArgumentNullException(nameof(searchModel));
-            DateTime fromDate = DateTime.ParseExact(searchModel.fromPurchaseDate, "yyyy/MM/dd", CultureInfo.InvariantCulture);
-            DateTime toDate = DateTime.ParseExact(searchModel.toPurchaseDate, "yyyy/MM/dd", CultureInfo.InvariantCulture);
+            if (p == null)
+                throw new ArgumentNullException(nameof(p));
 
-            var items = _purchaseService.SearchPurchases(searchModel.vendorName, searchModel.productName, fromDate,
-                 toDate, searchModel.vendorName, Int32.Parse(searchModel.purchaseStatusId), Int32.Parse(searchModel.purchaseProcessId));
+            DateTime? FromDate = null;
+            if (!string.IsNullOrWhiteSpace(p.FromPurchaseDate))
+            {
+                FromDate = Convert.ToDateTime(p.FromPurchaseDate);
+            }
+            DateTime? ToDate = null;
+            if (!string.IsNullOrWhiteSpace(p.ToPurchaseDate))
+            {
+                ToDate = Convert.ToDateTime(p.ToPurchaseDate);
+            }
+            int statusId = 0;
+            if (!string.IsNullOrWhiteSpace(p.PurchaseStatusId))
+            {
+                statusId = Int32.Parse(p.PurchaseStatusId);
+            }
+            int processId = 0;
+            if (!string.IsNullOrWhiteSpace(p.PurchaseProcessId))
+            {
+                processId = Int32.Parse(p.PurchaseProcessId);
+            }
 
-            var purchaseModels = new List<PurchaseModel>(); 
+            var items = _purchaseService.SearchPurchases(p.VendorName, p.ProductName, FromDate,
+                            ToDate, p.PurchaseNo, statusId, processId);
+
+            var purchases = CreatePurchaseModelList(items);
+
+            var purchaseListModel = new PurchaseListModel();
+            purchaseListModel.Purchases = purchases;
+            purchaseListModel.HasNextPage = items.HasNextPage;
+            purchaseListModel.HasPreviousPage = items.HasPreviousPage;
+            purchaseListModel.PageIndex = items.PageIndex;
+            purchaseListModel.PageSize = items.PageSize;
+            purchaseListModel.TotalCount = items.TotalCount;
+            purchaseListModel.TotalPages = items.TotalPages;
+            purchaseListModel.PurchaseStatus = p.PurchaseStatusId.Equals("0") ? SelectListHelper.GetPurchaseStatus(false, "ALL")
+                                                : SelectListHelper.GetPurchaseStatus(true, p.PurchaseStatusName);
+            purchaseListModel.PurchaseProcessStatus = p.PurchaseProcessId.Equals("0") ? SelectListHelper.GetPurchaseProcess(false, "ALL")
+                                                : SelectListHelper.GetPurchaseProcess(true, p.PurchaseProcessName);
+            return purchaseListModel;
+        }
+
+        private static List<PurchaseModel> CreatePurchaseModelList(IPagedList<Purchase> items)
+        {
+            var purchases = new List<PurchaseModel>();
 
             foreach (var item in items)
             {
-                purchaseModels.Add(new PurchaseModel
+
+                purchases.Add(new PurchaseModel
                 {
                     Id = item.Id,
+                    PurchaseNo = item.PurchaseNo,
                     PurchaseStatusName = item.PurchaseStatus.ToString(),
                     PurchaseProcessName = item.PurchaseProcess.ToString(),
-                    VendorName = (item.Vendor == null) ? item.VendorName :  item.Vendor.Name,
+                    VendorName = (item.Vendor == null) ? item.VendorName : item.Vendor.Name,
                     TotalCrates = item.TotalCrates,
-                }); 
+                    PurchaseDateName = item.PurchaseDate.HasValue ? item.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A",
+                    Remark = item.Remark,
+                });
             }
-            var purchaseListModel = new PurchaseListModel();
-            purchaseListModel.Data = purchaseModels.ToArray();
-            return purchaseListModel;
+
+            return purchases;
         }
+
 
         public PurchaseSearchModel PreparePurchaseSearchModel(PurchaseSearchModel searchModel)
         {

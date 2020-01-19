@@ -24,8 +24,14 @@ namespace MissionControl.Client
                 var httpClient = new HttpClient { BaseAddress = new Uri(BackendUrl) };
                 return new PurchaseState(httpClient);
             });
-            services.AddScoped<ReceptionState>();
-            services.AddScoped<PurchaseState>();
+            //services.AddScoped<ReceptionState>();
+            //services.AddScoped<PurchaseState>();
+            //services.AddScoped<VendorState>();
+            services.AddScoped(serviceProvider =>
+            {
+                var httpClient = new HttpClient { BaseAddress = new Uri(BackendUrl) };
+                return new VendorState(httpClient);
+            });
         }
 
         public void Configure(IComponentsApplicationBuilder app)

@@ -24,188 +24,35 @@ namespace MissionControl.Server.Controllers
 
         private readonly IPdfService _pdfService;
         private readonly IPurchaseService _purchaseService;
-        //private readonly IPurchaseModelFactory _purchaseModelFactory;
+        private readonly IPurchaseModelFactory _purchaseModelFactory;
         private readonly IProductService _productService;
         private readonly IVendorService _vendorService;
         private readonly IMapper _mapper;
 
         public PurchasesController(IPurchaseService purchaseService,
             IVendorService vendorService,
-        IPdfService pdfService,
-          //  IPurchaseModelFactory purchaseModelFactory,
+            IPdfService pdfService,
+            IPurchaseModelFactory purchaseModelFactory,
             IProductService productService,
             IMapper mapper)
         {
             _purchaseService = purchaseService;
             _pdfService = pdfService;
-           // _purchaseModelFactory = purchaseModelFactory;
+            _purchaseModelFactory = purchaseModelFactory;
             _productService = productService;
             _vendorService = vendorService;
 
             _mapper = mapper;
         }
 
-        //[Authorize]
-        //[HttpGet("/listProducts")]
-        //public IEnumerable<SelectListItem> ListProducts()
-        //{
-        //    return SelectListHelper.GetProductList(_productService, false);
-        //}
-
-        //[Authorize]
-        //[HttpGet("/listPurchaseStatuses")]
-        //public IEnumerable<SelectListItem> ListPurchaseStatuses(bool withSpecialDefaultItem, string defaultItemText = "All")
-        //{
-        //    return SelectListHelper.GetPurchaseStatus(withSpecialDefaultItem, defaultItemText);
-        //}
-
-        //[Authorize]
-        //[HttpGet("/listPurchaseProcesses")]
-        //public IEnumerable<SelectListItem> ListPurchaseProcess(bool withSpecialDefaultItem, string defaultItemText = "All")
-        //{
-        //    return SelectListHelper.GetPurchaseProcess(withSpecialDefaultItem, defaultItemText);
-        //}
-        [Authorize]
-        [HttpPost("/searchPurchase")]
-        public IEnumerable<PurchaseModel> GetPurchases(PurchaseSearchRequest p)
-        {
-            DateTime? FromDate = null;
-            if (!string.IsNullOrWhiteSpace(p.fromPurchaseDate))
-            {
-                FromDate = Convert.ToDateTime(p.fromPurchaseDate);
-            }
-            DateTime? ToDate = null;
-            if (!string.IsNullOrWhiteSpace(p.toPurchaseDate))
-            {
-                ToDate = Convert.ToDateTime(p.toPurchaseDate);
-            }
-            int statusId = 0;
-            if (!string.IsNullOrWhiteSpace(p.purchaseStatusId))
-            {
-                statusId = Int32.Parse(p.purchaseStatusId);
-            }
-            int processId = 0;
-            if (!string.IsNullOrWhiteSpace(p.purchaseProcessId))
-            {
-                processId = Int32.Parse(p.purchaseProcessId);
-            }
-
-            var items = _purchaseService.SearchPurchases(p.vendorName, p.productName, FromDate,
-                            ToDate, p.purchaseNo, statusId, processId);
-
-            List<PurchaseModel> purchases = new List<PurchaseModel>();
-
-            foreach (var item in items)
-            {
-
-                purchases.Add(new PurchaseModel
-                {
-                    Id = item.Id,
-                    PurchaseNo = item.PurchaseNo,
-                    PurchaseStatusName = item.PurchaseStatus.ToString(),
-                    PurchaseProcessName = item.PurchaseProcess.ToString(),
-                    VendorName = (item.Vendor == null) ? item.VendorName : item.Vendor.Name,
-                    TotalCrates = item.TotalCrates,
-                    PurchaseDateName = item.PurchaseDate.HasValue ? item.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A",
-                    Remark = item.Remark,
-                });
-            }
-            return purchases;
-        }
 
         [Authorize]
         [HttpPost("/searchPurchaseList")]
         public PurchaseListModel SearchPurchaseList(PurchaseSearchRequest p)
         {
-            DateTime? FromDate = null;
-            if (!string.IsNullOrWhiteSpace(p.fromPurchaseDate))
-            {
-                FromDate = Convert.ToDateTime(p.fromPurchaseDate);
-            }
-            DateTime? ToDate = null;
-            if (!string.IsNullOrWhiteSpace(p.toPurchaseDate))
-            {
-                ToDate = Convert.ToDateTime(p.toPurchaseDate);
-            }
-            int statusId = 0;
-            if (!string.IsNullOrWhiteSpace(p.purchaseStatusId))
-            {
-                statusId = Int32.Parse(p.purchaseStatusId);
-            }
-            int processId = 0;
-            if (!string.IsNullOrWhiteSpace(p.purchaseProcessId))
-            {
-                processId = Int32.Parse(p.purchaseProcessId);
-            }
-
-            var items = _purchaseService.SearchPurchases(p.vendorName, p.productName, FromDate,
-                            ToDate, p.purchaseNo, statusId, processId);
-
-            var purchases = CreatePurchaseModelList(items);
-
-            var purchaseListModel = new PurchaseListModel();
-            purchaseListModel.Data = purchases;
-            purchaseListModel.HasNextPage = items.HasNextPage;
-            purchaseListModel.HasPreviousPage = items.HasPreviousPage;
-            purchaseListModel.PageIndex = items.PageIndex;
-            purchaseListModel.PageSize = items.PageSize;
-            purchaseListModel.TotalCount = items.TotalCount;
-            purchaseListModel.TotalPages = items.TotalPages;
-            purchaseListModel.PurchaseStatus = p.purchaseStatusId.Equals("0") ? SelectListHelper.GetPurchaseStatus(false, "ALL")
-                                                : SelectListHelper.GetPurchaseStatus(true, p.purchaseStatusName);
-            purchaseListModel.PurchaseProcessStatus = p.purchaseProcessId.Equals("0") ? SelectListHelper.GetPurchaseProcess(false, "ALL")
-                                                : SelectListHelper.GetPurchaseProcess(true, p.purchaseProcessName);
-            purchaseListModel.Products = SelectListHelper.GetProductList(_productService, false);
-            purchaseListModel.Vendors = SelectListHelper.GetVendorList(_vendorService, false);
-            return purchaseListModel;
+            return _purchaseModelFactory.PreparePurchaseListModel(p);
         }
 
-        private static List<PurchaseModel> CreatePurchaseModelList(IPagedList<Purchase> items)
-        {
-            var purchases = new List<PurchaseModel>();
-
-            foreach (var item in items)
-            {
-
-                purchases.Add(new PurchaseModel
-                {
-                    Id = item.Id,
-                    PurchaseNo = item.PurchaseNo,
-                    PurchaseStatusName = item.PurchaseStatus.ToString(),
-                    PurchaseProcessName = item.PurchaseProcess.ToString(),
-                    VendorName = (item.Vendor == null) ? item.VendorName : item.Vendor.Name,
-                    TotalCrates = item.TotalCrates,
-                    PurchaseDateName = item.PurchaseDate.HasValue ? item.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A",
-                    Remark = item.Remark,
-                });
-            }
-
-            return purchases;
-        }
-
-        private List<ProductModel> GetProductList(string name,int id)
-        {
-            var products = _productService.GetAllProducts(name,id);
-            var productList = new List<ProductModel>();
-            foreach (var item in products)
-            {
-                productList.Add(new ProductModel { Id = item.Id, Name = item.Name });
-            }
-
-            return productList;
-        }
-
-        private List<VendorModel> GetVendorList(string name,int id)
-        {
-            var vendors = _vendorService.GetAllVendors(name,id);
-            var verdorList = new List<VendorModel>();
-            foreach (var item in vendors)
-            {
-                verdorList.Add(new VendorModel { Id = item.Id, Name = item.Name });
-            }
-
-            return verdorList;
-        }
 
         [Authorize]
         [HttpPost("/updatePurchaseItem")]
@@ -231,7 +78,7 @@ namespace MissionControl.Server.Controllers
             var purchaseItem = new PurchaseItem();
             purchaseItem.Purchase = purchase;
             purchaseItem.PurchaseId = purchase.Id;
-            //  purchaseItem.ProductId = req.ProductId;
+            purchaseItem.ProductId = req.ProductId;
             purchaseItem.ProductName = req.ProductName;
             purchaseItem.PurchaseCrates = req.PurchaseCrates;
             purchaseItem.UnitPriceExclTax = req.UnitPriceExclTax;
@@ -264,6 +111,7 @@ namespace MissionControl.Server.Controllers
             else
                 _purchaseService.InsertPurchase(purchase);
             var purchaseModel = _mapper.Map<PurchaseModel>(purchase);
+
             return purchaseModel;
         }
 
@@ -283,34 +131,32 @@ namespace MissionControl.Server.Controllers
 
         }
 
-        [Authorize]
+        // [Authorize]
         [HttpGet("{id}")]
         public ActionResult<PurchaseModel> GetPurchase([FromRoute] int id)
         {
+            var purchaseModel = new PurchaseModel();
+            //purchaseModel.Products = SelectListHelper.GetProductList(_productService, false);
+            //purchaseModel.Vendors = SelectListHelper.GetVendorList(_vendorService, false);
             if (id == 0)
-                return new PurchaseModel();
+                return purchaseModel;
 
             var purchase = _purchaseService.GetPurchaseById(id);
 
             if (purchase == null)
-                return new PurchaseModel();
-
-            var p = new PurchaseModel
-            {
-                Id = purchase.Id,
-                PurchaseNo = purchase.PurchaseNo,
-                PurchaseStatusId = purchase.PurchaseStatusId == null ? 0 : purchase.PurchaseStatusId.Value,
-                PurchaseStatusIdValue = purchase.PurchaseStatusId.Value.ToString(),
-                PurchaseStatusName = purchase.PurchaseStatus.ToString(),
-                VendorName = (purchase.Vendor == null) ? purchase.VendorName : purchase.Vendor.Name,
-                VendorAddress = purchase.VendorAddress,
-                TotalCrates = purchase.TotalCrates,
-                PurchaseDate = (purchase.PurchaseDate == null) ? DateTime.Today : purchase.PurchaseDate.Value,
-                PurchaseDateName = purchase.PurchaseDate.HasValue ? purchase.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A",
-                Remark = purchase.Remark,
-            };
-
-            return p;
+                return purchaseModel;
+            purchaseModel.Id = purchase.Id;
+            purchaseModel.PurchaseNo = purchase.PurchaseNo;
+            purchaseModel.PurchaseStatusId = purchase.PurchaseStatusId == null ? 0 : purchase.PurchaseStatusId.Value;
+            purchaseModel.PurchaseStatusIdValue = purchase.PurchaseStatusId.Value.ToString();
+            purchaseModel.PurchaseStatusName = purchase.PurchaseStatus.ToString();
+            purchaseModel.VendorName = (purchase.Vendor == null) ? purchase.VendorName : purchase.Vendor.Name;
+            purchaseModel.VendorAddress = purchase.VendorAddress;
+            purchaseModel.TotalCrates = purchase.TotalCrates;
+            purchaseModel.PurchaseDate = (purchase.PurchaseDate == null) ? DateTime.Today : purchase.PurchaseDate.Value;
+            purchaseModel.PurchaseDateName = purchase.PurchaseDate.HasValue ? purchase.PurchaseDate.Value.ToString("yyyy-MM-dd") : "N/A";
+            purchaseModel.Remark = purchase.Remark;
+            return purchaseModel;
 
         }
 
@@ -392,148 +238,5 @@ namespace MissionControl.Server.Controllers
         }
 
 
-
-        //[HttpGet("/purchaseItem/{id}")]
-        //public async Task<ActionResult<List<PurchaseItem>>> GetPurchaseItem(int id)
-        //{
-        //    var purchaseItems = await _db.PurchaseItems
-        //        .Where(o => o.Id == id)
-        //        .Include(p => p.Product)
-        //        .ToListAsync();
-
-        //    return purchaseItems;
-        //}
-
-        //[HttpPost("/savePurchaseItem")]
-        //public async Task<ActionResult<int>> SavePurchaseItems([FromRoute] PurchaseItemModel purchaseItemModel)
-        //{
-        //    // Enforce existence of Pizza.SpecialId and Topping.ToppingId
-        //    // in the database - prevent the submitter from making up
-        //    // new specials and toppings
-        //    PurchaseItem purchaseItem = NewPurchaseItem(purchaseItemModel);
-        //    _db.PurchaseItems.Attach(purchaseItem);
-        //    await _db.SaveChangesAsync();
-
-        //    // In the background, send push notifications if possible
-        //    var subscription = await _db.NotificationSubscriptions.Where(e => e.UserId == GetUserId()).SingleOrDefaultAsync();
-        //    if (subscription != null)
-        //    {
-        //        _ = TrackAndSendNotificationsItemAsync(purchaseItem, subscription);
-        //    }
-
-        //    return purchaseItem.Id;
-        //}
-
-        //private static PurchaseItem NewPurchaseItem(PurchaseItemModel purchaseItemModel)
-        //{
-        //    return new PurchaseItem
-        //    {
-        //        ProductId = purchaseItemModel.ProductId,
-        //    };
-        //}
-
-        //[HttpPost]
-        //public async Task<ActionResult<int>> SavePurchase([FromRoute] PurchaseModel purchaseModel)
-        //{
-        //    // Enforce existence of Pizza.SpecialId and Topping.ToppingId
-        //    // in the database - prevent the submitter from making up
-        //    // new specials and toppings
-        //    Purchase purchase = NewPurchase(purchaseModel);
-        //    _db.Purchases.Attach(purchase);
-        //    await _db.SaveChangesAsync();
-
-        //    // In the background, send push notifications if possible
-        //    var subscription = await _db.NotificationSubscriptions.Where(e => e.UserId == GetUserId()).SingleOrDefaultAsync();
-        //    if (subscription != null)
-        //    {
-        //        _ = TrackAndSendNotificationsAsync(purchase, subscription);
-        //    }
-
-        //    return purchase.Id;
-        //}
-
-        //private static Purchase NewPurchase(PurchaseModel purchaseModel)
-        //{
-        //    return new Purchase
-        //    {
-        //        VendorId = purchaseModel.VendorId,
-        //    };
-        //}
-
-        //// DELETE: api/Purchase/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeletePurchase([FromRoute] int id)
-        //{
-        //    var purchase = await _db.Purchases.SingleOrDefaultAsync(p => p.Id == id);
-        //    if (purchase == null)
-        //        return NotFound();
-        //    purchase.Deleted = true;
-        //    _db.Purchases.Update(purchase);
-        //    await _db.SaveChangesAsync();
-        //    return Ok(purchase);
-        //}
-
-        //[HttpDelete("/deletePurchaseItem/{id}")]
-        //public async Task<IActionResult> DeletePurchaseItem([FromRoute] int id)
-        //{
-        //    var purchaseItem = await _db.PurchaseItems.SingleOrDefaultAsync(p => p.Id == id);
-        //    if (purchaseItem == null)
-        //        return NotFound();
-        //    _db.PurchaseItems.Remove(purchaseItem);
-        //    await _db.SaveChangesAsync();
-        //    return Ok(purchaseItem);
-        //}
-        //private string GetUserId()
-        //{
-        //    // This will be the user's twitter username
-        //    return HttpContext.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
-        //}
-
-        //private static async Task TrackAndSendNotificationsAsync(Purchase purchase, NotificationSubscription subscription)
-        //{
-        //    // In a realistic case, some other backend process would track
-        //    // purchase delivery progress and send us notifications when it
-        //    // changes. Since we don't have any such process here, fake it.
-        //    //await Task.Delay(PurchaseItem.PreparationDuration);
-        //    //await SendNotificationAsync(purchase, subscription, "Your purchase has been dispatched!");
-
-        //    //await Task.Delay(PurchaseItem.DeliveryDuration);
-        //    //await SendNotificationAsync(purchase, subscription, "Your purchase is now delivered. Enjoy!");
-        //}
-        //private static async Task TrackAndSendNotificationsItemAsync(PurchaseItem purchaseItem, NotificationSubscription subscription)
-        //{
-        //    // In a realistic case, some other backend process would track
-        //    // purchase delivery progress and send us notifications when it
-        //    // changes. Since we don't have any such process here, fake it.
-        //    //await Task.Delay(PurchaseItem.PreparationDuration);
-        //    //await SendNotificationAsync(purchase, subscription, "Your purchase has been dispatched!");
-
-        //    //await Task.Delay(PurchaseItem.DeliveryDuration);
-        //    //await SendNotificationAsync(purchase, subscription, "Your purchase is now delivered. Enjoy!");
-        //}
-
-        //private static async Task SendNotificationAsync(Purchase purchase, NotificationSubscription subscription, string message)
-        //{
-        //    // For a real application, generate your own
-        //    var publicKey = "BLC8GOevpcpjQiLkO7JmVClQjycvTCYWm6Cq_a7wJZlstGTVZvwGFFHMYfXt6Njyvgx_GlXJeo5cSiZ1y4JOx1o";
-        //    var privateKey = "OrubzSz3yWACscZXjFQrrtDwCKg-TGFuWhluQ2wLXDo";
-
-        //    var pushSubscription = new PushSubscription(subscription.Url, subscription.P256dh, subscription.Auth);
-        //    var vapidDetails = new VapidDetails("mailto:<someone@example.com>", publicKey, privateKey);
-        //    var webPushClient = new WebPushClient();
-        //    try
-        //    {
-        //        var payload = JsonSerializer.Serialize(new
-        //        {
-        //            message,
-        //            url = $"mypurchases/{purchase.Id}",
-        //        });
-        //        await webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.Error.WriteLine("Error sending push notification: " + ex.Message);
-        //    }
-        //}
     }
 }

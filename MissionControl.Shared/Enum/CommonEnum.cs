@@ -4,6 +4,25 @@ using System.Text;
 
 namespace MissionControl.Shared.Enum
 {
+    public enum CountryType
+    {
+        Thailand = 10,
+        OtherCountry = 20
+    }
+
+    public enum TaxType
+    {
+        none = 10,
+        HeadOffice = 20,
+        Branch = 30
+    }
+
+    public enum CompanyType
+    {
+        Individual = 10,
+        CompanyLimited = 20,
+        PublicCompanyLimited = 30,
+    }
     public enum PurchaseStatus
     {
         /// <summary>

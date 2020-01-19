@@ -32,6 +32,22 @@ namespace MissionControl.Services
             return vendors;
         }
 
+        public Vendor GetVendorById(int id)
+        {
+            if (id == 0)
+                return null;
 
+            return _vendorRepository.GetById(id);
+        }
+
+        public void InsertVendor(Vendor vendor)
+        {
+            _vendorRepository.Insert(vendor);
+        }
+
+        public void UpdateVendor(Vendor vendor)
+        {
+            _vendorRepository.Update(vendor);
+        }
     }
 }

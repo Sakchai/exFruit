@@ -237,7 +237,7 @@ namespace MissionControl.Shared.Models.Common
                 string value = Eval(item, DataValueField);
                 return new SelectListItem
                 {
-                    Group = GetGroup(item, disabledGroups),
+                    //group = GetGroup(item, disabledGroups),
                     Value = value,
                     Text = Eval(item, DataTextField),
                     Selected = selectedValues.Contains(value),
@@ -258,7 +258,7 @@ namespace MissionControl.Shared.Models.Common
             {
                 return new SelectListItem
                 {
-                    Group = GetGroup(item, disabledGroups),
+                  // group = GetGroup(item, disabledGroups),
                     Text = Eval(item, DataTextField),
                     Selected = selectedValues.Contains(item),
                     Disabled = disabledValues.Contains(item),

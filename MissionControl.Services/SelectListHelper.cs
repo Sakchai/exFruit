@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using MissionControl.Shared.Enum;
+using Newtonsoft.Json;
 
 namespace MissionControl.Services
 {
@@ -51,11 +52,21 @@ namespace MissionControl.Services
         {
             var items = new List<SelectListItem>();
             //prepare available return request statuses
-            var availableStatusItems = PurchaseStatus.Pending.ToSelectList(false);
-            foreach (var statusItem in availableStatusItems)
+            var statuses = PurchaseStatus.Pending.ToSelectList(false);
+            foreach (var statusItem in statuses)
             {
                 items.Add(statusItem);
             }
+
+            //foreach (var item in statuses)
+            //{
+            //    var enumValue = JsonConvert.DeserializeObject<EnumValue>(item.Text.Replace('=',':'));
+            //    items.Add(new SelectListItem
+            //    {
+            //        Text = enumValue.Name,
+            //        Value = enumValue.ID
+            //    });
+            //};
             PrepareDefaultItem(items, withSpecialDefaultItem, defaultItemText);
             return items;
         }
@@ -64,11 +75,21 @@ namespace MissionControl.Services
         {
             var items = new List<SelectListItem>();
             //prepare available return request statuses
-            var availableStatusItems = PurchaseProcess.Purchase.ToSelectList(false);
-            foreach (var statusItem in availableStatusItems)
+            var statuses = PurchaseProcess.Purchase.ToSelectList(false);
+            foreach (var statusItem in statuses)
             {
                 items.Add(statusItem);
             }
+
+            //foreach (var item in statuses)
+            //{
+            //    var enumValue = JsonConvert.DeserializeObject<EnumValue>(item.Text.Replace('=', ':'));
+            //    items.Add(new SelectListItem
+            //    {
+            //        Text = enumValue.Name,
+            //        Value = enumValue.ID
+            //    });
+            //};
             PrepareDefaultItem(items, withSpecialDefaultItem, defaultItemText);
             return items;
         }
@@ -91,5 +112,10 @@ namespace MissionControl.Services
             //insert this default item at first
             items.Insert(0, new SelectListItem { Text = defaultItemText, Value = value });
         }
+    }
+    public class EnumValue
+    {
+        public string ID { get; set; }
+        public string Name { get; set; }
     }
 }

@@ -94,7 +94,7 @@ namespace MissionControl.Shared
         #region Navigation properties
 
         /// <summary>
-        /// Gets or sets the customer
+        /// Gets or sets the Vendor
         /// </summary>
         public virtual Vendor Vendor { get; set; }
 

@@ -19,7 +19,10 @@ namespace MissionControl.Client.Util
             Console.WriteLine(url);
             var response = await httpClient.SendAsync(request);
             var responseBytes = await response.Content.ReadAsByteArrayAsync();
-            return System.Text.Json.JsonSerializer.Deserialize<T>(responseBytes, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            //return System.Text.Json.JsonSerializer.Deserialize<T>(responseBytes, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var bytesAsString = Encoding.UTF8.GetString(responseBytes);
+            return JsonConvert.DeserializeObject<T>(bytesAsString);
+
         }
 
         public static async Task<T> PostJsonAsync<T>(this HttpClient httpClient, string url, string jsonParms, AuthenticationHeaderValue authorization)
@@ -38,7 +41,9 @@ namespace MissionControl.Client.Util
 
             var response = await httpClient.SendAsync(requestMessage);
             var responseBytes = await response.Content.ReadAsByteArrayAsync();
-            return System.Text.Json.JsonSerializer.Deserialize<T>(responseBytes, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            //return System.Text.Json.JsonSerializer.Deserialize<T>(responseBytes, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var bytesAsString = Encoding.UTF8.GetString(responseBytes);
+            return JsonConvert.DeserializeObject<T>(bytesAsString);
 
         }
 

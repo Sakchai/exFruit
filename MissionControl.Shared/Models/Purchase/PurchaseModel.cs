@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MissionControl.Shared.Models.Common;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -13,19 +14,23 @@ namespace MissionControl.Shared.Models
     public partial class PurchaseModel : BaseEntityModel
     {
         #region Ctor
-
+        //public PurchaseModel ()
+        //{
+        //    Vendors = new List<SelectListItem>();
+        //    Products = new List<SelectListItem>();
+        //}
 
         #endregion
 
         #region Properties
-
-
+        //public IEnumerable<SelectListItem> Vendors { get; set; }
+        //public IEnumerable<SelectListItem> Products { get; set; }
 
         //identifiers
 
-        public int VendorId { get; set; }
+        public int VendorId { get; set; } = 0;
 
-        public string VendorAddress { get; set; }
+        public string VendorAddress { get; set; } = "";
         public string VendorName { get; set; } = "";
         public decimal PurchaseTotal { get; set; } = 0;
         public string PurchaseTotalValue { get; set; } = "";
@@ -42,7 +47,7 @@ namespace MissionControl.Shared.Models
         public string PurchaseDateName { get; set; } = "";
         public string PurchaseNo { get; set; } = "";
         public decimal WeightKg { get; set; } = 0;
-        public string Remark { get; set; }
+        public string Remark { get; set; } = "";
         #endregion
 
 

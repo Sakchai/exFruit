@@ -21,11 +21,11 @@ namespace MissionControl.Client
 
         private HttpClient _httpClient = new HttpClient();
         public List<PurchaseModel> Rows;
-
+        public PurchaseListModel purchaseListModel = new PurchaseListModel();
         public PurchaseModel Header;
         public List<PurchaseItemModel> Details;
-        public List<SelectListItem> Products;
-        public List<SelectListItem> Vendors;
+        public List<SelectListItem> Products = new List<SelectListItem>();
+        public List<SelectListItem> Vendors = new List<SelectListItem>();
         public List<SelectListItem> PurchaseStatuses;
         public List<SelectListItem> PurchaseProcesses;
 
@@ -65,13 +65,15 @@ namespace MissionControl.Client
 
                 var strPayload = JsonConvert.SerializeObject(purchaseSearchRequest);
                 Console.WriteLine($"strPayload={strPayload}");
-                var items = await _httpClient.PostJsonAsync<PurchaseListModel>(apiRequest, strPayload,
+                var purchaseListModel = await _httpClient.PostJsonAsync<PurchaseListModel>(apiRequest, strPayload,
                                 new AuthenticationHeaderValue("Bearer", token));
-                Rows = items.Data.ToList();
-                Products = items.Products.ToList();
-                Vendors = items.Vendors.ToList();
-                PurchaseStatuses = items.PurchaseStatus.ToList();
-                PurchaseProcesses = items.PurchaseProcessStatus.ToList();
+                var strItems = JsonConvert.SerializeObject(purchaseListModel);
+                Console.WriteLine($"strItems={strItems}");
+                Rows = purchaseListModel.Purchases != null ? purchaseListModel.Purchases.ToList() : new List<PurchaseModel>();
+                //Products = purchaseListModel.Products != null ? purchaseListModel.Products.ToList() : new List<SelectListItem>();
+                //Vendors = purchaseListModel.Vendors != null ? purchaseListModel.Vendors.ToList() : new List<SelectListItem>();
+                PurchaseStatuses = purchaseListModel.PurchaseStatus != null ? purchaseListModel.PurchaseStatus.ToList() : new List<SelectListItem>();
+                PurchaseProcesses = purchaseListModel.PurchaseProcessStatus != null ? purchaseListModel.PurchaseProcessStatus.ToList() : new List<SelectListItem>();
             }
         }
         public async Task UpdatePurchaseItemAsync(PurchaseItemUpdateRequest updateRequest, string token)
@@ -169,9 +171,15 @@ namespace MissionControl.Client
                 Console.WriteLine($"id={id}");
                 Header = await _httpClient.GetJsonAsync<PurchaseModel>(apiRequest,
                                 new AuthenticationHeaderValue("Bearer", token));
+                var strPayload = JsonConvert.SerializeObject(Header);
+                Console.WriteLine($"strPayload={strPayload}");
+                //Products = Header.Products != null ? Header.Products.ToList() : new List<SelectListItem>();
+                //Vendors = Header.Vendors != null ? Header.Vendors.ToList() : new List<SelectListItem>();
+
             }
             Console.WriteLine($"purchase Id:{Header.Id}");
             Console.WriteLine($"purchase PurchaseNo:{Header.PurchaseNo}");
+
         }
 
         public async Task GetPurchaseItemsAsync(int id, string token)

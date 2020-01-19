@@ -11,7 +11,7 @@ namespace MissionControl.Services.Factories
     {
         PurchaseSearchModel PreparePurchaseSearchModel(PurchaseSearchModel searchModel);
 
-        PurchaseListModel PreparePurchaseListModel(PurchaseSearchModel searchModel);
+        PurchaseListModel PreparePurchaseListModel(PurchaseSearchRequest searchModel);
 
         void PreparePurchaseStatuses(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
         void PreparePurchaseProcesses(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);

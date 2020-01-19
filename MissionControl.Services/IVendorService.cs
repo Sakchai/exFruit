@@ -11,5 +11,8 @@ namespace MissionControl.Services
     {
 
         IPagedList<Vendor> GetAllVendors(string name = "",int id = 0, int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false);
+        Vendor GetVendorById(int id);
+        void UpdateVendor(Vendor vendor);
+        void InsertVendor(Vendor vendor);
     }
 }

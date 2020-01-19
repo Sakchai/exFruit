@@ -1,0 +1,197 @@
+﻿@page "/Vendor/Edit/{id:int}"
+@using Microsoft.AspNetCore.Components
+@attribute [Authorize]
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject TokenAuthenticationStateProvider TokenProvider
+@inject VendorState VendorState
+@inject NavigationManager NavigationManager
+<style>
+    .nopadding {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+</style>
+
+<div class="row" style="margin-top: 5px;">
+    <div class="col-sm-9">
+        <h1 class="@MdcTypography.H4">Edit Vendor</h1>
+    </div>
+    <div class="col-sm-3">
+        <MatButton Raised="true" OnClick="Back" Label="Back" Class="margin: 10px 0px 0px 0px;"></MatButton>
+        <MatButton Raised="true" OnClick="@(e => { dialogIsSave = true; })" Label="Save" Class="margin: 10px 0px 0px 0px;"></MatButton>
+    </div>
+</div>
+
+
+@if (VendorState.Rows == null)
+{
+<MdcLinearProgress />
+}
+else
+{
+
+<div class="mdc-card main-content-card">
+    <div class="row">
+        <div class="col-sm-4">
+            <label class="control-label">Code:</label>
+            <MatTextField @bind-Value="vendor.VendorCode" Class="form-control nopadding"></MatTextField>
+        </div>
+
+        <div class="col-sm-4">
+            <label class="control-label">Vendor Name:</label>
+            <MatTextField @bind-Value="vendor.Name" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+            <label class="control-label">Choose Country:&nbsp;&nbsp;</label>
+            <MatSelect @bind-Value="vendor.CountryTypeId">
+                <MatOptionString Value="0">All</MatOptionString>
+                <MatOptionString Value="10">Thailand</MatOptionString>
+                <MatOptionString Value="20">Other Country</MatOptionString>
+            </MatSelect>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <label class="control-label">Tax ID:</label>
+            <MatTextField @bind-Value="vendor.TaxID" Class="form-control nopadding"></MatTextField>
+        </div>
+
+        <div class="col-md-4">
+            <label class="control-label">Tax Type:&nbsp;&nbsp;</label>
+            <MatSelect @bind-Value="vendor.TaxTypeId">
+                <MatOptionString Value="0">All</MatOptionString>
+                <MatOptionString Value="10">None</MatOptionString>
+                <MatOptionString Value="20">Head Office</MatOptionString>
+                <MatOptionString Value="30">Branch</MatOptionString>
+            </MatSelect>
+        </div>
+    </div>
+
+</div>
+
+<div class="mdc-card main-content-card">
+    <div class="row">
+        <div class="col-md-4">
+            <label class="control-label">Company Type:</label>
+            <MatSelect @bind-Value="vendor.CompanyTypeId">
+                <MatOptionString Value="0">All</MatOptionString>
+                <MatOptionString Value="10">Individual</MatOptionString>
+                <MatOptionString Value="20">Company Limited</MatOptionString>
+                <MatOptionString Value="30">Public Company Limited</MatOptionString>
+            </MatSelect>
+        </div>
+        <div class="col-sm-4">
+            <label class="control-label">Name:</label>
+            <MatTextField @bind-Value="vendor.Name" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-sm-4">
+        </div>
+
+
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            <label class="control-label">Address:</label>
+            <MatTextField @bind-Value="vendor.Address.Address1" Class="form-control nopadding"></MatTextField>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <label class="control-label">District:</label>
+            <MatTextField @bind-Value="vendor.Address.District" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+            <label class="control-label">City:</label>
+            <MatTextField @bind-Value="vendor.Address.City" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <label class="control-label">Province:</label>
+            <MatTextField @bind-Value="vendor.Address.Province" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+            <label class="control-label">Post Code:</label>
+            <MatTextField @bind-Value="vendor.Address.PostalCode" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <label class="control-label">Email:</label>
+            <MatTextField @bind-Value="vendor.Email" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+            <label class="control-label">Telephone:</label>
+            <MatTextField @bind-Value="vendor.Telephone" Class="form-control nopadding"></MatTextField>
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+</div>
+
+
+
+}
+
+<MatDialog @bind-IsOpen="@dialogIsSave">
+    <MatDialogTitle>Confirmation</MatDialogTitle>
+    <MatDialogContent>
+        <p>Do you wich to save this record?</p>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="() => SaveVendor(vendor)">OK</MatButton>
+        <MatButton OnClick="@(e => { dialogIsSave = false; })">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    public string urlEditVendor { get; set; }
+    public VendorModel vendor = new VendorModel();
+    public int itemDeleteId { get; set; }
+    bool dialogIsSave = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+
+    void EditVendor(int id)
+    {
+        string urlEditVendor = $"Vendor/Edit/{id}";
+        NavigationManager.NavigateTo(urlEditVendor);
+    }
+
+    async Task Refresh()
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        Console.WriteLine(token);
+        await VendorState.GetVendorAsync(id, token);
+    }
+
+
+    void Create()
+    {
+        NavigationManager.NavigateTo("/Vendor/Edit/0");
+
+    }
+
+    void Back()
+    {
+        NavigationManager.NavigateTo("/vendor/list");
+    }
+
+    async Task SaveVendor(VendorModel vendorModel)
+    {
+        var token = await TokenProvider.GetTokenAsync();
+        await VendorState.AddVendorAsync(vendorModel, token);
+        dialogIsSave = false;
+    }
+
+}

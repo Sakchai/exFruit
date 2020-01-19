@@ -9,47 +9,12 @@ using System.Text;
 namespace MissionControl.Shared.Models.Purchase
 {
   
-    public class PurchaseListModel
+    public class PurchaseListModel : CommonListModel
     {
-        public IEnumerable<PurchaseModel> Data;
-        public IEnumerable<SelectListItem> Vendors;
-        public IEnumerable<SelectListItem> Products;
-        public IEnumerable<SelectListItem> PurchaseStatus;
-        public IEnumerable<SelectListItem> PurchaseProcessStatus;
 
-        /// <summary>
-        /// Page index
-        /// </summary>
-        public int PageIndex { get; set; }
+        public IEnumerable<PurchaseModel> Purchases = new List<PurchaseModel>();
+        public IEnumerable<SelectListItem> PurchaseStatus = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> PurchaseProcessStatus = new List<SelectListItem>();
 
-        /// <summary>
-        /// Page size
-        /// </summary>
-        public int PageSize { get; set; }
-
-        /// <summary>
-        /// Total count
-        /// </summary>
-        public int TotalCount { get; set; }
-
-        /// <summary>
-        /// Total pages
-        /// </summary>
-        public int TotalPages { get; set; }
-
-        /// <summary>
-        /// Has previous page
-        /// </summary>
-        public bool HasPreviousPage { get; set; }
-
-        /// <summary>
-        /// Has next age
-        /// </summary>
-        public bool HasNextPage { get; set; }
-
-
-
-        public bool IsSuccessed { get; set; }
-        public string ErrorMessage { get; set; }
     }
 }

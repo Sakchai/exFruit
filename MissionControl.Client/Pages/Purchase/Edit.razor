@@ -1,4 +1,4 @@
-﻿@page "/purchase/edit/{id:int}"
+﻿@page "/Purchase/Edit/{id:int}"
 @using Microsoft.AspNetCore.Components
 @attribute [Authorize]
 @inject HttpClient Http
@@ -41,6 +41,9 @@ else
             <div class="col-sm-4">
                 <label class="control-label">Vendor Name:</label>
                 <MatTextField @bind-Value="PurchaseState.Header.VendorName" Class="form-control text-box single-line"></MatTextField>
+                <MatSelect  @bind-Value="PurchaseState.Header.VendorId">
+
+                </MatSelect>
             </div>
 
         </div>
@@ -142,6 +145,8 @@ else
             <div class="col-sm-6">
                 <label class="control-label">Product:</label>
                 <MatTextField @bind-Value="@item.ProductName" Class="form-control text-box"></MatTextField>
+
+    
             </div>
             <div class="col-sm-6">
                 <label class="control-label">Weight (kg):</label>
@@ -172,6 +177,8 @@ else
             <div class="col-sm-6">
                 <label class="control-label">Product:</label>
                 <MatTextField @bind-Value="@item.ProductName" Class="form-control text-box"></MatTextField>
+
+
             </div>
             <div class="col-sm-6">
                 <label class="control-label">Weight (kg):</label>
@@ -206,7 +213,6 @@ else
     bool dialogIsAdd = false;
     public DateTime purchaseDate;
     public PurchaseItemModel item = new PurchaseItemModel();
-
     protected override async Task OnInitializedAsync()
     {
         if (id > 0)

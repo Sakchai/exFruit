@@ -17,6 +17,9 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using MissionControl.Services;
 using AutoMapper;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
+
 namespace MissionControl.Server
 {
     public class Startup
@@ -24,7 +27,7 @@ namespace MissionControl.Server
         //public Startup(IConfiguration configuration)
         public Startup(Microsoft.Extensions.Hosting.IHostingEnvironment env)
         {
-           // Configuration = configuration;
+            // Configuration = configuration;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -42,7 +45,11 @@ namespace MissionControl.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAutoMapper(typeof(Startup));
-            services.AddMvc().AddNewtonsoftJson();
+            services.AddMvc().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                //options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            }); 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TropiThai API", Version = "v1" });
@@ -100,7 +107,7 @@ namespace MissionControl.Server
                         ValidAudience = Configuration["Jwt:Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"])),
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
-                        };
+                    };
                 });
 
             services.AddResponseCompression(opts =>

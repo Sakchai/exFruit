@@ -1,4 +1,4 @@
-﻿@page "/purchase/list"
+﻿@page "/Purchase/List"
 @using Microsoft.AspNetCore.Components
 @attribute [Authorize]
 @inject IJSRuntime JSRuntime
@@ -43,7 +43,7 @@ else
             </div>
             <div class="col-md-4">
                 <label class="control-label">Process Status:&nbsp;&nbsp;</label>
-                <MatSelect @bind-Value="pr.purchaseProcessId">
+                <MatSelect @bind-Value="pr.PurchaseProcessId">
                     <MatOptionString Value="0">All</MatOptionString>
                     <MatOptionString Value="10">Purchase</MatOptionString>
                     <MatOptionString Value="20">Receive</MatOptionString>
@@ -55,17 +55,17 @@ else
         <div class="row">
             <div class="col-sm-4">
                 <label class="control-label">PO#:</label>
-                <MatTextField @bind-Value="pr.purchaseNo" Class="form-control nopadding"></MatTextField>
+                <MatTextField @bind-Value="pr.PurchaseNo" Class="form-control nopadding"></MatTextField>
             </div>
 
             <div class="col-md-4">
                 <label class="control-label">Product:</label>
-                <MatTextField @bind-Value="pr.productName" Class="form-control nopadding"></MatTextField>
+                <MatTextField @bind-Value="pr.ProductName" Class="form-control nopadding"></MatTextField>
             </div>
 
             <div class="col-md-4">
                 <label class="control-label">Purchase Status:</label>
-                <MatSelect @bind-Value="pr.purchaseStatusId">
+                <MatSelect @bind-Value="pr.PurchaseStatusId">
                     <MatOptionString Value="0">All</MatOptionString>
                     <MatOptionString Value="10">Pending</MatOptionString>
                     <MatOptionString Value="20">Paid</MatOptionString>
@@ -77,7 +77,7 @@ else
 
             <div class="col-sm-4">
                 <label class="control-label">Suppier:</label>
-                <MatTextField @bind-Value="pr.vendorName" Class="form-control nopadding text-box"></MatTextField>
+                <MatTextField @bind-Value="pr.VendorName" Class="form-control nopadding text-box"></MatTextField>
             </div>
             <div class="col-md-8">
                 <div style="margin-top: 30px;">
@@ -139,7 +139,7 @@ else
 
     void EditPurchase(int id)
     {
-        string urlEditPurchase = $"edit-purchase/{id}";
+        string urlEditPurchase = $"Purchase/Edit/{id}";
         NavigationManager.NavigateTo(urlEditPurchase);
     }
 
@@ -147,16 +147,16 @@ else
     {
         var token = await TokenProvider.GetTokenAsync();
         Console.WriteLine(token);
-        pr.fromPurchaseDate = FromDate.ToString("yyyy-MM-dd");
-        pr.toPurchaseDate = ToDate.ToString("yyyy-MM-dd");
-        await PurchaseState.SearchPurchaseAsync(pr, token);
-
+        pr.FromPurchaseDate = FromDate.ToString("yyyy-MM-dd");
+        pr.ToPurchaseDate = ToDate.ToString("yyyy-MM-dd");
+        //await PurchaseState.SearchPurchaseAsync(pr, token);
+        await PurchaseState.SearchPurchaseListAsync(pr, token);
     }
 
 
     void Create()
     {
-        NavigationManager.NavigateTo("/purchase/edit/0");
+        NavigationManager.NavigateTo("/Purchase/Edit/0");
 
     }
 
@@ -164,7 +164,7 @@ else
     async Task BarcodeItem(int id)
     {
         purchaseId = id;
-        await JSRuntime.InvokeAsync<object>("PdfFileSaveAs",purchaseId);
+        await JSRuntime.InvokeAsync<object>("PdfFileSaveAs", purchaseId);
     }
 
 

@@ -16,7 +16,7 @@ namespace MissionControl.Shared.Models.Common
         /// In a select list, multiple groups with the same name are supported.
         /// They are compared with reference equality.
         /// </summary>
-        public SelectListGroup Group { get; set; }
+       // public SelectListGroup group { get; set; }
 
         public bool Selected { get; set; }
 
