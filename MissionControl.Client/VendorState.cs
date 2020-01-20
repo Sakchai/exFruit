@@ -21,7 +21,8 @@ namespace MissionControl.Client
         private HttpClient _httpClient = new HttpClient();
         public List<VendorModel> Rows;
         public VendorListModel vendorListModel = new VendorListModel();
-        public VendorModel Vendor;
+        public VendorModel Vendor = new VendorModel();
+        public AddressModel Address = new AddressModel();
         public List<SelectListItem> CountryTypes;
         public List<SelectListItem> TaxTypes;
 
@@ -81,7 +82,6 @@ namespace MissionControl.Client
         {
             var apiRequest = $"/vendors/{id}";
             Console.WriteLine(apiRequest);
-            Vendor = new VendorModel();
             if (!string.IsNullOrWhiteSpace(token))
             {
                 Console.WriteLine($"id={id}");
@@ -91,10 +91,11 @@ namespace MissionControl.Client
                 Console.WriteLine($"strPayload={strPayload}");
                 //Products = Header.Products != null ? Header.Products.ToList() : new List<SelectListItem>();
                 //Vendors = Header.Vendors != null ? Header.Vendors.ToList() : new List<SelectListItem>();
+                Console.WriteLine($"vendor Id:{Vendor.Id}");
+                if (Vendor.Address != null)
+                    Console.WriteLine($"vendor VendorNo:{Vendor.Address.District}");
 
             }
-            Console.WriteLine($"vendor Id:{Vendor.Id}");
-            Console.WriteLine($"vendor VendorNo:{Vendor.VendorCode}");
 
         }
 

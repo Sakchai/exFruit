@@ -15,7 +15,7 @@
 
 <div class="row" style="margin-top: 5px;">
     <div class="col-sm-9">
-        <h1 class="@MdcTypography.H4">Edit Vendor</h1>
+        <h1 class="@MdcTypography.H4">@headerPage</h1>
     </div>
     <div class="col-sm-3">
         <MatButton Raised="true" OnClick="Back" Label="Back" Class="margin: 10px 0px 0px 0px;"></MatButton>
@@ -35,16 +35,16 @@ else
     <div class="row">
         <div class="col-sm-4">
             <label class="control-label">Code:</label>
-            <MatTextField @bind-Value="vendor.VendorCode" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.VendorCode" Class="form-control nopadding"></MatTextField>
         </div>
 
         <div class="col-sm-4">
             <label class="control-label">Vendor Name:</label>
-            <MatTextField @bind-Value="vendor.Name" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Name" Class="form-control nopadding"></MatTextField>
         </div>
         <div class="col-md-4">
             <label class="control-label">Choose Country:&nbsp;&nbsp;</label>
-            <MatSelect @bind-Value="vendor.CountryTypeId">
+            <MatSelect @bind-Value="@countryTypeId">
                 <MatOptionString Value="0">All</MatOptionString>
                 <MatOptionString Value="10">Thailand</MatOptionString>
                 <MatOptionString Value="20">Other Country</MatOptionString>
@@ -54,12 +54,12 @@ else
     <div class="row">
         <div class="col-md-4">
             <label class="control-label">Tax ID:</label>
-            <MatTextField @bind-Value="vendor.TaxID" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.TaxID" Class="form-control nopadding"></MatTextField>
         </div>
 
         <div class="col-md-4">
             <label class="control-label">Tax Type:&nbsp;&nbsp;</label>
-            <MatSelect @bind-Value="vendor.TaxTypeId">
+            <MatSelect @bind-Value="@taxTypeId">
                 <MatOptionString Value="0">All</MatOptionString>
                 <MatOptionString Value="10">None</MatOptionString>
                 <MatOptionString Value="20">Head Office</MatOptionString>
@@ -74,36 +74,32 @@ else
     <div class="row">
         <div class="col-md-4">
             <label class="control-label">Company Type:</label>
-            <MatSelect @bind-Value="vendor.CompanyTypeId">
+            <MatSelect @bind-Value="@companyTypeId">
                 <MatOptionString Value="0">All</MatOptionString>
                 <MatOptionString Value="10">Individual</MatOptionString>
                 <MatOptionString Value="20">Company Limited</MatOptionString>
                 <MatOptionString Value="30">Public Company Limited</MatOptionString>
             </MatSelect>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-8">
             <label class="control-label">Name:</label>
-            <MatTextField @bind-Value="vendor.Name" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Name" Class="form-control nopadding"></MatTextField>
         </div>
-        <div class="col-sm-4">
-        </div>
-
-
     </div>
     <div class="row">
-        <div class="col-sm-4">
+        <div class="col-sm-12">
             <label class="control-label">Address:</label>
-            <MatTextField @bind-Value="vendor.Address.Address1" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Address.Address1" Class="form-control nopadding"></MatTextField>
         </div>
     </div>
     <div class="row">
         <div class="col-md-4">
             <label class="control-label">District:</label>
-            <MatTextField @bind-Value="vendor.Address.District" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Address.District" Class="form-control nopadding"></MatTextField>
         </div>
         <div class="col-md-4">
             <label class="control-label">City:</label>
-            <MatTextField @bind-Value="vendor.Address.City" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Address.City" Class="form-control nopadding"></MatTextField>
         </div>
         <div class="col-md-4">
         </div>
@@ -111,11 +107,11 @@ else
     <div class="row">
         <div class="col-md-4">
             <label class="control-label">Province:</label>
-            <MatTextField @bind-Value="vendor.Address.Province" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Address.Province" Class="form-control nopadding"></MatTextField>
         </div>
         <div class="col-md-4">
             <label class="control-label">Post Code:</label>
-            <MatTextField @bind-Value="vendor.Address.PostalCode" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Address.PostalCode" Class="form-control nopadding"></MatTextField>
         </div>
         <div class="col-md-4">
         </div>
@@ -123,11 +119,11 @@ else
     <div class="row">
         <div class="col-md-4">
             <label class="control-label">Email:</label>
-            <MatTextField @bind-Value="vendor.Email" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Email" Class="form-control nopadding"></MatTextField>
         </div>
         <div class="col-md-4">
             <label class="control-label">Telephone:</label>
-            <MatTextField @bind-Value="vendor.Telephone" Class="form-control nopadding"></MatTextField>
+            <MatTextField @bind-Value="VendorState.Vendor.Telephone" Class="form-control nopadding"></MatTextField>
         </div>
         <div class="col-md-4">
         </div>
@@ -144,7 +140,7 @@ else
         <p>Do you wich to save this record?</p>
     </MatDialogContent>
     <MatDialogActions>
-        <MatButton OnClick="() => SaveVendor(vendor)">OK</MatButton>
+        <MatButton OnClick="() => SaveVendor()">OK</MatButton>
         <MatButton OnClick="@(e => { dialogIsSave = false; })">Cancel</MatButton>
     </MatDialogActions>
 </MatDialog>
@@ -152,11 +148,12 @@ else
 @code {
     [Parameter]
     public int id { get; set; }
-    public string urlEditVendor { get; set; }
-    public VendorModel vendor = new VendorModel();
+    public string headerPage { get; set; }
     public int itemDeleteId { get; set; }
     bool dialogIsSave = false;
-
+    string countryTypeId { get; set; } = "0";
+    string companyTypeId { get; set; } = "0";
+    string taxTypeId { get; set; } = "0";
     protected override async Task OnInitializedAsync()
     {
         await Refresh();
@@ -173,13 +170,19 @@ else
         var token = await TokenProvider.GetTokenAsync();
         Console.WriteLine(token);
         await VendorState.GetVendorAsync(id, token);
+        countryTypeId = VendorState.Vendor.CountryTypeId.ToString();
+        companyTypeId = VendorState.Vendor.CompanyTypeId.ToString();
+        taxTypeId = VendorState.Vendor.TaxTypeId.ToString();
+        if ((VendorState.Vendor != null) && (VendorState.Vendor.Id > 0))
+            headerPage = "Edit Vendor";
+        else
+            headerPage = "Create Vendor";
     }
 
 
     void Create()
     {
         NavigationManager.NavigateTo("/Vendor/Edit/0");
-
     }
 
     void Back()
@@ -187,10 +190,13 @@ else
         NavigationManager.NavigateTo("/vendor/list");
     }
 
-    async Task SaveVendor(VendorModel vendorModel)
+    async Task SaveVendor()
     {
         var token = await TokenProvider.GetTokenAsync();
-        await VendorState.AddVendorAsync(vendorModel, token);
+        VendorState.Vendor.CountryTypeId = Int32.Parse(countryTypeId);
+        VendorState.Vendor.CompanyTypeId = Int32.Parse(companyTypeId);
+        VendorState.Vendor.TaxTypeId = Int32.Parse(taxTypeId);
+        await VendorState.AddVendorAsync(VendorState.Vendor, token);
         dialogIsSave = false;
     }
 
